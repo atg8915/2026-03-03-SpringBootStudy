@@ -51,6 +51,7 @@ Spring Boot
 | 일차 | 주제 | 링크 |
 |:----:|------|:----:|
 | Day 01 | Spring Boot 구조(build.gradle/application.yml), JPA(Entity/Repository/save/delete), Thymeleaf(th:each/th:href/th:if), 가상DOM 개념, MVC→Boot 비교 | [📄](./springboot_day01.md) |
+| Day 02 | AOP(@Around 공통로그), 전역예외처리(@ControllerAdvice), Food(Thymeleaf 서버렌더링) vs Goods(Vue+Axios REST) CRUD 비교, 우분투 서버 세팅, Docker 배포(build→tag→push→pull→run) | [📄 보기](./springboot_day02.md) |
 
 ---
 
