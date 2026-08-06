@@ -53,6 +53,7 @@ Spring Boot
 | Day 01 | Spring Boot 구조(build.gradle/application.yml), JPA(Entity/Repository/save/delete), Thymeleaf(th:each/th:href/th:if), 가상DOM 개념, MVC→Boot 비교 | [📄](./springboot_day01.md) |
 | Day 02 | AOP(@Around 공통로그), 전역예외처리(@ControllerAdvice), Food(Thymeleaf 서버렌더링) vs Goods(Vue+Axios REST) CRUD 비교, 우분투 서버 세팅, Docker 배포(build→tag→push→pull→run) | [📄 보기](./springboot_day02.md) |
 | Day 03 | Thymeleaf 레이아웃 include 패턴(main_html 스위칭), VO 프로젝션+nativeQuery 페이징, Controller 역할 분리(@Controller vs @RestController+CrossOrigin), Vuex store(state/mutation/action), CI/CD 개념, Docker Compose 설치 | [📄 보기](./springboot_day03.md) |
+| Day 04 | Recipe/Chef 목록+페이징(getPageData에 rowsize 매개변수화, pages[] 배열 통일), 레이아웃 재사용, Docker Compose(up -d/down)로 배포 간소화 | [📄 보기](./springboot_day04.md) |
 
 ---
 
