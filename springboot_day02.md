@@ -253,7 +253,7 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
 ```
 - 주석 메모: JPA/Hibernate가 DB별 SQL 문법을 자동 생성 (`NVL` vs `IFNULL`, `OFFSET` vs `LIMIT`, `SYSDATE`/`NOW()`/`CURRENT_DATE` 등 DB마다 다름)
-- 하단에 `# security / # spring ai / # websocket = 카프카` 로 다음 학습 예정 항목 메모됨
+- 하단에 `# security / # spring ai / # websocket = 카프카` 로 다음 학습 예정 항목 메모
 
 ---
 
