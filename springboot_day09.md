@@ -271,10 +271,3 @@ logging:
 
 ---
 
-## 10. README 한 줄 요약 (표에 추가할 문구)
-
-```text
-| Day 09 | `SpringPiniaProject_2` 신규 프로젝트 초기 스캐폴딩(Food/Recipe/Chef 재시작), MyBatis 어노테이션+XML 혼용 패턴, main.html에 Vue3+axios+vue-demi+Pinia CDN 연동, Dockerfile/.gitattributes 추가, application.yml DB정보 환경변수 유지 | [📄 보기](./springboot_day09.md) |
-```
-
----
