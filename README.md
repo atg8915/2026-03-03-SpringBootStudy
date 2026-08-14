@@ -57,6 +57,7 @@ Spring Boot
 | Day 05 | Recipe 검색(제목/쉐프)+상세보기(RecipeDetail 분리, foodmake 파싱), Thymeleaf+Vue 혼합 렌더링 패턴, Git Actions self-hosted runner 자동배포(+RUNNER/파일명 일치 교훈) | [📄 보기](./springboot_day05.md) |
 | Day 06 | 파일 업로드 3종(HTML/Vue+FormData/jQuery 동적행), DataBoard 첨부파일 게시판(MyBatis), multipart 용량 설정, Docker 권한(usermod), Git Actions 배포를 jar 실행→Docker 컨테이너 실행으로 전환 | [📄 보기](./springboot_day06.md) |
 | Day 07 | Emp/Dept 검색 3방식 비교(메소드규칙/JPQL/QueryDSL), Q-class 생성+JPAQueryFactory Bean 등록, QueryDSL 연산자·조인·Top-N 총정리, application.yml DB정보 환경변수 분리 | [📄 보기](./springboot_day07.md) |
+| Day 08 | Recipe JPA→MyBatis 전환(Mapper+XML), CDN 방식 Vue+Pinia(빌드 없이 Thymeleaf에 삽입), th:inline으로 서버값 전달, Docker 환경변수 주입 3단계(/etc/environment → docker run -e → .env), IP/계정정보 항상 마스킹하는 습관 | [📄 보기](./springboot_day08.md) |
 | Day 09 | `SpringPiniaProject_2` 신규 프로젝트 초기 스캐폴딩(Food/Recipe/Chef 재시작), MyBatis 어노테이션+XML 혼용 패턴, main.html에 Vue3+axios+vue-demi+Pinia CDN 연동, Dockerfile/.gitattributes 추가, application.yml DB정보 환경변수 유지 | [📄 보기](./springboot_day09.md) |
 
 ---
