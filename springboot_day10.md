@@ -5,7 +5,7 @@
 | 구분 | Day09까지 | Day10 (오늘) |
 |------|-----------|--------------|
 | 인증/인가 | (없음) | **Spring Security** 처음 도입 — `SecurityConfig`(`SecurityFilterChain`) 추가 |
-| 로그인 흐름 | (없음) | `/member/login` 폼 로그인 + `LoginSuccessHandler`/`LoginFailHandler`(둘 다 **미구현 TODO 스텁**) |
+| 로그인 흐름 | (없음) | `/member/login` 폼 로그인 + `LoginSuccessHandler`/`LoginFailHandler`(둘 다 **미구현 스텁**) |
 | 인증 관련 Bean | (없음) | `AuthenticationManager`/`JdbcUserDetailsManager`/`PersistentTokenRepository` **모두 `return null`인 스텁 상태** |
 | 비밀번호 암호화 | (없음) | `BCryptPasswordEncoder` Bean만 정상 등록 |
 | VO | FoodVO/RecipeVO/RecipeDetailVO/ChefVO | **`MemberVO`/`AuthorityVO`** 신규 (회원/권한 테이블 매핑) |
@@ -117,7 +117,7 @@ public BCryptPasswordEncoder passwordEncoder() {
 
 ---
 
-## 4. LoginSuccessHandler / LoginFailHandler — TODO 스텁
+## 4. LoginSuccessHandler / LoginFailHandler — 미구현 스텁
 
 ```java
 @Component
@@ -125,7 +125,6 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
 			Authentication authentication) throws IOException, ServletException {
-		// TODO Auto-generated method stub
 	}
 }
 ```
@@ -135,11 +134,10 @@ public class LoginFailHandler implements AuthenticationFailureHandler {
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException exception) throws IOException, ServletException {
-		// TODO Auto-generated method stub
 	}
 }
 ```
-- 둘 다 `@Component`로 등록만 해두고 본문은 이클립스 자동생성 주석(`TODO Auto-generated method stub`) 그대로 — `SecurityConfig`에는 이미 연결(`successHandler`/`failureHandler`)돼 있어 **인터페이스 구현체를 먼저 배치하고 로직은 다음에 채우는 순서**로 진행 중
+- 둘 다 `@Component`로 등록만 해두고 본문은 비어 있는 상태 — `SecurityConfig`에는 이미 연결(`successHandler`/`failureHandler`)돼 있어 **인터페이스 구현체를 먼저 배치하고 로직은 다음에 채우는 순서**로 진행 중
 
 ---
 
@@ -207,7 +205,7 @@ public class LoginFailHandler implements AuthenticationFailureHandler {
 |------|-------|--------------|
 | 관심사 | 프로젝트 초기 스캐폴딩(화면/데이터 골격) | **인증/인가(Security) 골격** 추가 |
 | 완성도 | Mapper/Service 델리게이트는 대부분 동작 | 필터 체인은 작성됐지만 **DB 연동 인증 Bean 3종은 전부 null** |
-| 미완성 표시 방식 | `foodPages()`가 `return null` | `authenticationManager`/`jdbcUserDetailsManager`/`persistentTokenRepository`가 `return null`, 핸들러 2종은 `TODO` 주석 |
+| 미완성 표시 방식 | `foodPages()`가 `return null` | `authenticationManager`/`jdbcUserDetailsManager`/`persistentTokenRepository`가 `return null`, 핸들러 2종은 빈 메서드로 방치 |
 | 화면-보안 연결 | (해당 없음) | `login.html` input name ↔ `usernameParameter`/`passwordParameter` 매칭, `header.html`에 `sec:authorize` 준비만 해둠 |
 
 ---
