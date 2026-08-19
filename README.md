@@ -59,6 +59,7 @@ Spring Boot
 | Day 07 | Emp/Dept 검색 3방식 비교(메소드규칙/JPQL/QueryDSL), Q-class 생성+JPAQueryFactory Bean 등록, QueryDSL 연산자·조인·Top-N 총정리, application.yml DB정보 환경변수 분리 | [📄 보기](./springboot_day07.md) |
 | Day 08 | Recipe JPA→MyBatis 전환(Mapper+XML), CDN 방식 Vue+Pinia(빌드 없이 Thymeleaf에 삽입), th:inline으로 서버값 전달, Docker 환경변수 주입 3단계(/etc/environment → docker run -e → .env), IP/계정정보 항상 마스킹하는 습관 | [📄 보기](./springboot_day08.md) |
 | Day 09 | `SpringPiniaProject_2` 신규 프로젝트 초기 스캐폴딩(Food/Recipe/Chef 재시작), MyBatis 어노테이션+XML 혼용 패턴, main.html에 Vue3+axios+vue-demi+Pinia CDN 연동, Dockerfile/.gitattributes 추가, application.yml DB정보 환경변수 유지 | [📄 보기](./springboot_day09.md) |
+| Day 10 | Spring Security 로그인 골격 도입(SecurityConfig 필터체인/csrf-disable/remember-me/logout), MemberVO·AuthorityVO 신규, login.html/join.html 화면 추가, header.html에 sec:authorize 네임스페이스 준비 — AuthenticationManager 등 인증 Bean 3종은 아직 null(다음 작업 예정) | [📄 보기](./springboot_day10.md) |
 
 ---
 
