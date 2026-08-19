@@ -125,6 +125,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
 			Authentication authentication) throws IOException, ServletException {
+		// TODO Auto-generated method stub
 	}
 }
 ```
@@ -134,10 +135,11 @@ public class LoginFailHandler implements AuthenticationFailureHandler {
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException exception) throws IOException, ServletException {
+		// TODO Auto-generated method stub
 	}
 }
 ```
-- 둘 다 `@Component`로 등록만 해두고 본문은 비어 있는 상태 — `SecurityConfig`에는 이미 연결(`successHandler`/`failureHandler`)돼 있어 **인터페이스 구현체를 먼저 배치하고 로직은 다음에 채우는 순서**로 진행 중
+- 둘 다 `@Component`로 등록만 해두고 본문은 아직 구현되지 않은 상태 — `SecurityConfig`에는 이미 연결(`successHandler`/`failureHandler`)돼 있어 **인터페이스 구현체를 먼저 배치하고 로직은 다음에 채우는 순서**로 진행 중
 
 ---
 
