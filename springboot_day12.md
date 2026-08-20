@@ -319,11 +319,3 @@ public String food_detail_before(
 ⑩ 카카오맵 등 외부 SDK API 키는 소스에 그대로 노출되므로, 노트/저장소에 옮길 때는 반드시 마스킹할 것
 ⑪ Security 인증 객체(sec:authentication)와 세션 값(session.xxx) 중 어느 쪽을 화면 표시에 쓸지는 LoginSuccessHandler에서 세션에 뭘 채워 넣었는지에 따라 결정됨
 ```
-
----
-
-## 5. README 한 줄 요약 (표에 추가할 문구)
-
-```text
-| Day 12 | 미니 쿠버네티스(Minikube) 배포 실습(kubectl/Docker 드라이버 설치, deployment.yaml로 Deployment+NodePort Service 작성, imagePullPolicy Never로 로컬 이미지 배포) / `SpringPiniaProject_2` 댓글 기능 신규(Comment VO/Mapper/Service/RestController), food 상세 화면 카카오맵 연동, Cookie 기반 최근 본 상품, header.html MANAGER 역할 추가 | [📄 보기](./springboot_day12.md) |
-```
