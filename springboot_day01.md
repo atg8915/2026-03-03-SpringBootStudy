@@ -1,4 +1,4 @@
-# 📘 Spring Boot Day 01 — 프로젝트 구조 + JPA + Thymeleaf + 게시판 CRUD
+# Spring Boot Day 01 — 프로젝트 구조 + JPA + Thymeleaf + 게시판 CRUD
 
 ## 0. 핵심 빠른 참조
 
@@ -15,7 +15,7 @@
 
 ---
 
-## 1. 가상 DOM (Virtual DOM) — Vue / React 핵심 개념
+## 1. Vue와 React의 가상 DOM
 
 ```text
 기존 jQuery 방식
@@ -64,12 +64,12 @@ src/main/resources
 build.gradle            의존성 선언 (Maven의 pom.xml 역할)
 ```
 
-> ⭐ Spring Boot = 설정 최소화 + 내장 서버 + 자동 구성(Auto Configuration)  
-> 이전에 직접 만들었던 `DispatcherServlet`, `ComponentScan`, `application.xml` → Spring이 전부 자동 처리
+> Spring Boot는 설정을 최소화하고 서버를 내장해서 자동 구성(Auto Configuration)까지 해줌.  
+> 이전에 직접 만들었던 `DispatcherServlet`, `ComponentScan`, `application.xml`을 이제는 Spring이 전부 자동으로 처리함.
 
 ---
 
-## 3. build.gradle — 의존성 설정
+## 3. build.gradle 의존성 설정
 
 ```groovy
 plugins {
@@ -109,7 +109,7 @@ dependencies {
 
 ---
 
-## 4. application.yml — 전체 설정
+## 4. application.yml 전체 설정
 
 ```yaml
 server:
@@ -214,7 +214,7 @@ public interface BoardRepository extends JpaRepository<BoardEntity, Integer> {
 }
 ```
 
-### DTO (Interface 방식) ⭐
+### DTO (Interface 방식)
 ```java
 // @Query 결과를 받을 때 → interface로 선언하면 JPA가 자동 구현체 생성
 // 컬럼명과 메서드명(get+컬럼명) 매핑
@@ -265,8 +265,8 @@ public class BoardServiceImpl implements BoardService {
 ```
 
 > **왜 인터페이스를 쓰나?**  
-> → 나중에 구현체만 교체 가능 (MyBatis → JPA, Oracle → MySQL 전환 시 Controller 수정 없음)  
-> → 테스트 코드 작성 시 Mock 객체로 교체 용이
+> 나중에 구현체만 교체하면 되므로, MyBatis에서 JPA로 바꾸거나 Oracle에서 MySQL로 전환해도 Controller는 수정할 필요 없음.  
+> 테스트 코드를 작성할 때도 Mock 객체로 교체하기 쉬움.
 
 ---
 
@@ -339,7 +339,7 @@ public class BoardController {
 
 ---
 
-## 8. Thymeleaf — JSP JSTL 대체
+## 8. Thymeleaf로 JSTL 대체하기
 
 ```html
 <!-- 선언 : html 태그에 xmlns 추가 -->
@@ -443,3 +443,4 @@ public class BoardController {
 ```
 
 ---
+
