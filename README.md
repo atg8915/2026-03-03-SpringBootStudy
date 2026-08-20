@@ -61,6 +61,7 @@ Spring Boot
 | Day 09 | `SpringPiniaProject_2` 신규 프로젝트 초기 스캐폴딩(Food/Recipe/Chef 재시작), MyBatis 어노테이션+XML 혼용 패턴, main.html에 Vue3+axios+vue-demi+Pinia CDN 연동, Dockerfile/.gitattributes 추가, application.yml DB정보 환경변수 유지 | [📄 보기](./springboot_day09.md) |
 | Day 10 | Spring Security 로그인 골격 도입(SecurityConfig 필터체인/csrf-disable/remember-me/logout), MemberVO·AuthorityVO 신규, login.html/join.html 화면 추가, header.html에 sec:authorize 네임스페이스 준비 — AuthenticationManager 등 인증 Bean 3종은 아직 null(다음 작업 예정) | [📄 보기](./springboot_day10.md) |
 | Day 11 | `SpringPiniaProject_2` Security 인증 3종 Bean 완성(AuthenticationManager/JdbcUserDetailsManager/PersistentTokenRepository), login.html form 추가로 실제 로그인 가능, Docker Compose+GitHub Actions 배포 파이프라인 재정비 / 신규 실습 `SpringSecurityProject_1`(인메모리 UserDetailsService)·`SpringSecurityProject_2`(DB연동 CustomUserDetailsService, failureHandler 연결 누락 버그 발견)·`LamdaProject`(람다식+Stream 문법) | [📄 보기](./springboot_day11.md) |
+| Day 12 | 미니 쿠버네티스(Minikube) 배포 실습(kubectl/Docker 드라이버 설치, deployment.yaml로 Deployment+NodePort Service 작성, imagePullPolicy Never로 로컬 이미지 배포) / `SpringPiniaProject_2` 댓글 기능 신규(Comment VO/Mapper/Service/RestController), food 상세 화면 카카오맵 연동, Cookie 기반 최근 본 상품, header.html MANAGER 역할 추가 | [📄 보기](./springboot_day12.md) |
 
 ---
 
