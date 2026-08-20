@@ -1,13 +1,13 @@
-# 📘 Spring Boot Day 04 — Recipe/Chef 목록 + 페이지 배열 방식 + Docker Compose 실행
+# Spring Boot Day 04 — Recipe/Chef 목록 + 페이지 배열 방식 + Docker Compose 실행
 
 ## 0. 핵심 빠른 참조
 
 | 구분 | Day 03까지 | Day 04 (변경점) |
 |------|-----------|------------------|
 | 페이지 정보 전달 | `curpage/totalpage/startPage/endPage` 각각 개별 model 속성 | **`pages[]` 배열 하나**로 통합 (`pages[0]`=curpage, `pages[1]`=totalpage, `pages[2]`=startPage, `pages[3]`=endPage) |
-| 페이지 크기 | Service 내부에 고정값(12) | **`getPageData(page, rowsize)`처럼 rowsize를 매개변수로 전달** → 목록(12건)/쉐프(20건) 다른 크기 재사용 |
-| 화면 전환 | main_html로 `food/list`, `goods/list` 등 | 동일 패턴을 **레시피 앱(recipe/chef)에 재사용** — main.html/header.html 구조 그대로 |
-| Docker | Dockerfile로 직접 build/tag/push/run | **docker-compose.yml**로 이미지 pull+실행을 한 번에 (`up -d` / `down`) |
+| 페이지 크기 | Service 내부에 고정값(12) | `getPageData(page, rowsize)`처럼 **rowsize를 매개변수로 전달** → 목록(12건)/쉐프(20건) 다른 크기 재사용 |
+| 화면 전환 | main_html로 `food/list`, `goods/list` 등 | 동일 패턴을 레시피 앱(recipe/chef)에 재사용 — main.html/header.html 구조 그대로 |
+| Docker | Dockerfile로 직접 build/tag/push/run | `docker-compose.yml`로 이미지 pull+실행을 한 번에 (`up -d` / `down`) |
 
 | 계층 | 이번 자료 핵심 |
 |------|----------------|
@@ -45,7 +45,7 @@
 
 ---
 
-## 2. Entity — Recipe / Chef
+## 2. Entity(Recipe / Chef)
 
 ```java
 @Entity
@@ -66,12 +66,12 @@ public class Chef {
 	private String mem_cont1,mem_cont3,mem_cont7,mem_cont2;  // 메뉴/소개 콘텐츠 슬롯 4개
 }
 ```
-- `Chef`는 다른 Entity들과 달리 **PK가 `int no`가 아니라 `String chef`** — 쉐프 이름 자체를 기본키로 사용
-- Repository 주석에 `// JOIN Recipe = Chef => @Query` 메모 → 추후 Recipe와 Chef를 JOIN하는 쿼리 작성 예정
+- `Chef`는 다른 Entity들과 달리 PK가 `int no`가 아니라 `String chef`. 쉐프 이름 자체를 기본키로 사용함
+- Repository 주석에 `// JOIN Recipe = Chef => @Query` 메모가 남아 있음. 추후 Recipe와 Chef를 JOIN하는 쿼리 작성 예정
 
 ---
 
-## 3. Repository — 검색 메서드 규칙 재정리
+## 3. Repository 검색 메서드 규칙 재정리
 
 ```java
 public interface RecipeRepository extends JpaRepository<Recipe, Integer> {
@@ -97,7 +97,7 @@ public interface ChefRepository extends JpaRepository<Chef, String> {
 
 ---
 
-## 4. Service — Pageable 목록 조회 + 공용 페이지 계산
+## 4. Service의 Pageable 목록 조회와 공용 페이지 계산
 
 ### 목록 조회 (Recipe / Chef 동일 패턴)
 ```java
@@ -117,7 +117,7 @@ Pageable pg = PageRequest.of(page-1, 20);
 Page<Chef> pList = cDao.findAll(pg);
 ```
 
-### getPageData(page, rowsize) — 페이지 크기를 매개변수로 뺀 공용 메서드
+### 페이지 크기를 매개변수로 뺀 공용 메서드 `getPageData(page, rowsize)`
 ```java
 int totalpage = (int)(Math.ceil(rDao.count()/(double)rowsize));
 int startPage = ((page-1)/10*10)+1;
@@ -126,12 +126,12 @@ if (endPage > totalpage) endPage = totalpage;
 int[] pages = {page, totalpage, startPage, endPage};
 return pages;
 ```
-- Day02~03에서는 `12`(행 크기)가 메서드 내부에 고정돼 있었는데, 이번엔 **`rowsize`를 인자로 받아** 레시피(12건)와 쉐프(20건)에 같은 메서드를 재사용
-- 반환값은 개별 변수가 아니라 **배열 하나(`pages[]`)** 로 통일 → Controller/화면에서 `pages[0]~pages[3]`로 접근
+- Day02~03에서는 행 크기 `12`가 메서드 내부에 고정돼 있었는데, 이번엔 `rowsize`를 인자로 받음. 레시피 12건, 쉐프 20건에 같은 메서드를 그대로 씀
+- 반환값은 개별 변수가 아니라 배열 하나 `pages[]`로 통일해서, Controller/화면에서는 `pages[0]~pages[3]`로 접근함
 
 ---
 
-## 5. Controller — main_html 패턴 재사용
+## 5. Controller의 main_html 패턴 재사용
 
 ```java
 @GetMapping("/main/main")
@@ -156,12 +156,12 @@ public String recipe_chef(@RequestParam(value="page",required=false) String page
     return "main/main";
 }
 ```
-- Day03에서 정리한 **레이아웃 include 패턴**(`main.html` + `th:include="${main_html}"`)을 그대로 재사용 — 레시피 앱에서도 동일한 뼈대 구조 유지
-- `/main/main`을 **홈(레시피 목록)** 진입점으로 사용
+- Day03에서 정리한 레이아웃 include 패턴(`main.html` + `th:include="${main_html}"`)을 그대로 재사용. 레시피 앱에서도 뼈대 구조는 동일하게 유지됨
+- `/main/main`이 레시피 목록 홈 진입점
 
 ---
 
-## 6. 화면 — pages[] 배열 기반 페이징 (Thymeleaf)
+## 6. 화면 쪽 pages[] 배열 기반 페이징 (Thymeleaf)
 
 ```html
 <!-- home.html (레시피 목록) -->
@@ -197,7 +197,7 @@ public String recipe_chef(@RequestParam(value="page",required=false) String page
 <!-- 페이징 링크는 /recipe/chef_list(page=...) 로 동일 구조 재사용 -->
 ```
 
-### header.html — 드롭다운 메뉴 추가
+### header.html에 드롭다운 메뉴 추가
 ```html
 <a class="dropdown-toggle" data-toggle="dropdown" href="#">레시피 <span class="caret"></span></a>
 <ul class="dropdown-menu">
@@ -206,7 +206,7 @@ public String recipe_chef(@RequestParam(value="page",required=false) String page
 </ul>
 <li><a href="#">실시간 채팅(Pinia)</a></li>  <!-- 다음 학습 예고: Pinia 실시간 채팅 -->
 ```
-- `find.html`은 아직 빈 껍데기(레시피 검색 화면, 미구현 상태)
+- 레시피 검색 화면 `find.html`은 아직 빈 껍데기. 미구현 상태임
 
 ---
 
