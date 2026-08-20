@@ -1,13 +1,13 @@
-# 📘 Spring Boot Day 03 — Layout Include 패턴 + VO 프로젝션 + Vuex Store + CI/CD/Docker
+# Spring Boot Day 03 — Layout Include 패턴 + VO 프로젝션 + Vuex Store + CI/CD/Docker
 
 ## 0. 핵심 빠른 참조
 
 | 구분 | Day 02 방식 | Day 03 방식 (변경점) |
 |------|------------|----------------------|
-| 화면 구조 | 각 기능마다 별도 HTML (`food/list`, `goods/list`) | **`main/main` 단일 레이아웃** + `th:include="${main_html}"`로 내용만 교체 |
+| 화면 구조 | 각 기능마다 별도 HTML (`food/list`, `goods/list`) | `main/main` 단일 레이아웃 + `th:include="${main_html}"`로 내용만 교체 |
 | 목록 데이터 반환 | `Entity` 리스트 그대로 | **VO(interface) 프로젝션**으로 필요한 컬럼만 `@Query native` 조회 |
-| Vue 상태 관리 | 컴포넌트 내부 `data()`에서 axios 직접 호출 | **Vuex `store`(state/mutations/actions)**로 중앙 집중 관리 |
-| REST 통신 | `@RestController`만 사용 | `@RestController` + **`@CrossOrigin`**으로 포트 다른 Vue 서버 허용 |
+| Vue 상태 관리 | 컴포넌트 내부 `data()`에서 axios 직접 호출 | Vuex `store`(state/mutations/actions)로 중앙 집중 관리 |
+| REST 통신 | `@RestController`만 사용 | `@RestController` + `@CrossOrigin`으로 포트 다른 Vue 서버 허용 |
 
 | 계층 | 이번 자료에서 새로 나온 내용 |
 |------|------------------------------|
@@ -18,7 +18,7 @@
 
 ---
 
-## 1. Thymeleaf 레이아웃 Include 패턴 (`main.html`, `header.html`)
+## 1. Thymeleaf 레이아웃 Include 패턴 — `main.html` + `header.html`
 
 ```html
 <!-- main.html : 뼈대 페이지, 모든 요청이 여기로 모임 -->
@@ -31,11 +31,10 @@
 </html>
 ```
 
-- **동작 원리**: Controller에서 `model.addAttribute("main_html","food/list")`처럼 문자열로 페이지 경로를 지정하면, `main.html`이 그 경로를 `th:include`로 끼워 넣는다.
-- **장점**: header/footer 같은 공통 영역을 한 번만 작성하고, 본문만 요청별로 교체 (JSP의 `<jsp:include>`와 동일한 개념을 Thymeleaf로 구현)
-- **header.html**: `nav` 메뉴 구성. `<a href="/goods">스토어</a>` 처럼 각 모듈 진입 링크만 두고, 주석으로 `Vuex = REST 매핑(SELECT:GET, INSERT:POST, UPDATE:PUT, DELETE:DELETE)` 메모됨
+- 동작 원리: Controller에서 `model.addAttribute("main_html","food/list")`처럼 문자열로 페이지 경로를 지정하면 `main.html`이 그 경로를 `th:include`로 끼워 넣음. JSP의 `<jsp:include>`와 같은 개념을 Thymeleaf로 구현한 것이고, header/footer 같은 공통 영역은 한 번만 작성해두고 본문만 요청별로 교체하는 게 장점
+- `header.html`: `nav` 메뉴 구성. `<a href="/goods">스토어</a>`처럼 각 모듈 진입 링크만 둠. 주석으로 `Vuex = REST 매핑(SELECT:GET, INSERT:POST, UPDATE:PUT, DELETE:DELETE)` 메모됨
 
-### Controller에서 main_html 지정 흐름 (Food/Goods 공통 패턴)
+### Controller에서 main_html 지정 흐름 — Food/Goods 공통
 ```text
 GoodsController.goods_page()
   → list, curpage 등 model에 담기
@@ -50,7 +49,7 @@ MainController.main_page() (Food 목록 = 홈)
   → model.addAttribute("main_html","main/home")
   → return "main/main"
 ```
-> **핵심 주석**: `@Controller`는 화면 변경+데이터 전송(Router), `@RestController`는 JSON만 전송 → JavaScript 연동용
+> 핵심 주석: `@Controller`는 화면 변경+데이터 전송(Router), `@RestController`는 JSON만 전송 → JavaScript 연동용
 
 ---
 
@@ -72,8 +71,8 @@ public interface GoodsVO {
 	public String getGoodsPoster();
 }
 ```
-- Entity 전체가 아니라 **목록 화면에 필요한 컬럼만** 뽑아 쓰는 용도 (Day01 정리에서 다뤘던 인터페이스 기반 DTO와 동일 원리)
-- `// public recode FoodVO => 읽기 전용` 주석 → Java `record`로도 대체 가능하다는 메모 (오타: recode→record)
+- Entity 전체가 아니라 목록 화면에 필요한 컬럼만 뽑아 쓰는 용도. Day01 정리에서 다뤘던 인터페이스 기반 DTO와 원리가 같음
+- `// public recode FoodVO => 읽기 전용` 주석 → Java `record`로도 대체 가능하다는 메모. 여기서 recode는 record 오타
 
 ### Repository — native query 페이징
 ```java
@@ -98,7 +97,7 @@ findByGoodsNameContains(String goods_name)// Goods, LIKE 검색
 findByNo(int no)                          // 상세보기 공통
 ```
 
-### Service — start 계산 + 페이지 블록 계산 (Food/Goods 동일 로직)
+### Service — Food/Goods 동일한 start 계산 + 페이지 블록 계산
 ```java
 // 목록: page → start 변환
 int ROWSIZE = 12;
@@ -120,7 +119,7 @@ return goodsRepo.findByNo(no);
 
 ---
 
-## 3. Controller 3종 비교
+## 3. Controller 비교
 
 | Controller | 어노테이션 | 반환 | 용도 |
 |-----------|-----------|------|------|
@@ -136,13 +135,13 @@ public ResponseEntity<Map> food_list_vue(@RequestParam("page") int page) {
     // 실패 시 500(INTERNAL_SERVER_ERROR)
 }
 ```
-- `@CrossOrigin(origins = "*")` 주석: `http://localhost:8081` 처럼 **다른 포트의 Vue 개발 서버**가 이 API를 호출할 수 있도록 허용 (CORS)
+- `@CrossOrigin(origins = "*")` 주석: `http://localhost:8081`처럼 포트가 다른 Vue 개발 서버도 이 API를 호출할 수 있게 CORS 허용
 
 ---
 
-## 4. Vuex Store 패턴 (`store/food.js`)
+## 4. Vuex Store 패턴 — `store/food.js`
 
-### 개념 정리 (파일 내 주석 기준)
+### 개념 정리 — 파일 내 주석 기준
 ```text
 Vuex 4대 구성요소
   1. state     : 실제 공유 데이터 저장소 (변경되면 UI 자동 반영)
@@ -183,8 +182,8 @@ export default{
 }
 ```
 - 호출 순서: 컴포넌트 → `dispatch('foodListData', page)` → action이 axios로 서버 호출 → 응답 오면 `commit('SET_FOOD_DATA', ...)` → mutation이 state 갱신 → 화면 자동 반영
-- **폴더 구조 메모**: `components`(공통 Header/Footer) / `views`(출력 화면) / `router`(index.js, 화면 이동) / `store`(공통 데이터, food.js/board.js/goods.js → index.js로 통합)
-- 비교 메모(주석): `vue3(vuex/pinia)` : `JSP(MVC/Spring)` : `react(redux/next)` = 각 프레임워크의 상태관리 대응 관계
+- 폴더 구조 메모: `components`는 공통 Header/Footer, `views`는 출력 화면, `router`는 index.js로 화면 이동, `store`는 공통 데이터 — food.js/board.js/goods.js를 index.js로 통합
+- 주석의 비교 메모: `vue3(vuex/pinia)` : `JSP(MVC/Spring)` : `react(redux/next)` = 각 프레임워크의 상태관리 대응 관계
 
 ---
 
@@ -209,7 +208,7 @@ CD (Continuous Deployment, 지속적 배포)
 
 ---
 
-## 6. Docker 설치 + 이미지 배포 명령어 (재정리)
+## 6. Docker 설치 + 이미지 배포 명령어 재정리
 
 ```bash
 # 1) 필요 도구 설치
@@ -247,9 +246,9 @@ sudo docker stop <id>
 sudo docker rm <id>
 sudo docker rmi 이미지
 ```
-> `=> Dockerfile` 항목만 명시되고 내용은 이전 자료(Day02) 참고 — `FROM / WORKDIR / COPY / EXPOSE / ENTRYPOINT` 구조 동일
+> `=> Dockerfile` 항목만 명시되고 내용은 이전 자료 Day02 참고 — `FROM / WORKDIR / COPY / EXPOSE / ENTRYPOINT` 구조 동일
 
-### Docker Compose 설치 (도커가 이미 설치된 경우, 마지막 단계만)
+### Docker Compose 설치 — 도커가 이미 있으면 마지막 단계만
 ```bash
 sudo apt-get update
 sudo apt-get install ca-certificates curl gnupg lsb-release
@@ -264,11 +263,11 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io
 
 sudo curl -L "https://github.com/docker/compose/releases/download/1.28.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 ```
-> ⚠️ 원본 메모: "도커를 깔았다면 맨 아래 컴포즈만 설치" — 즉 도커가 이미 설치돼 있으면 마지막 `docker-compose` 다운로드 명령만 실행하면 됨
+> 원본 메모: "도커를 깔았다면 맨 아래 컴포즈만 설치" — 도커가 이미 설치돼 있으면 마지막 `docker-compose` 다운로드 명령만 실행하면 됨
 
 ---
 
-## 7. application.yml (Day02와 동일 설정 유지)
+## 7. application.yml — Day02 설정 그대로
 
 ```yaml
 spring:
@@ -329,3 +328,4 @@ logging:
 ```
 
 ---
+
