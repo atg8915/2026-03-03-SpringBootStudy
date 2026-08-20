@@ -12,7 +12,7 @@
 | 화면 | header/home/food 상세 등 | `member/login.html`(로그인 폼) / `member/join.html`(빈 스텁) 신규, `header.html`에 `sec:authorize` 네임스페이스 추가 |
 | build.gradle 의존성 | JPA/MyBatis/QueryDSL 위주 | `spring-boot-starter-security`, `oauth2-client`, `jackson-databind`, `websocket`, `thymeleaf-extras-springsecurity6` 5개 추가 |
 
-> 커밋 메시지는 `"security first"`로 짧지만, diff를 보면 Spring Security 인증 골격을 통째로 얹은 착수 단계 커밋임. `SecurityConfig`의 필터 체인(csrf/로그인/로그아웃/remember-me)은 동작 가능한 수준으로 작성됐지만, 실제 DB 연동 인증 로직인 AuthenticationManager 등 3개 Bean은 전부 `null` 반환임. 지금 상태로 로그인을 시도하면 인증 자체가 완성되지 않은 상태임
+> Spring Security 인증 골격을 통째로 얹은 착수 단계임. `SecurityConfig`의 필터 체인(csrf/로그인/로그아웃/remember-me)은 동작 가능한 수준으로 작성됐지만, 실제 DB 연동 인증 로직인 AuthenticationManager 등 3개 Bean은 전부 `null` 반환임. 지금 상태로 로그인을 시도하면 인증 자체가 완성되지 않은 상태임
 
 ---
 
@@ -28,9 +28,9 @@ dependencies {
 }
 ```
 - `spring-boot-starter-security`가 오늘 세팅한 `SecurityConfig`의 기반
-- `oauth2-client`는 소셜 로그인 대비로 미리 넣음. 오늘 커밋에 실제 OAuth2 설정 코드는 없음
+- `oauth2-client`는 소셜 로그인 대비로 미리 넣음. 실제 OAuth2 설정 코드는 아직 없음
 - `thymeleaf-extras-springsecurity6`은 `header.html`에서 쓴 `sec:authorize` 속성을 쓰기 위한 필수 의존성
-- `websocket`은 실시간 채팅 메뉴를 염두에 둔 선추가. `header.html`에 실시간 채팅 링크가 이미 있었음. 오늘 커밋에 관련 설정은 없음
+- `websocket`은 실시간 채팅 메뉴를 염두에 둔 선추가. `header.html`에 실시간 채팅 링크가 이미 있었음. 관련 설정은 아직 없음
 
 ---
 
@@ -113,7 +113,7 @@ public BCryptPasswordEncoder passwordEncoder() {
 ```
 - `passwordEncoder()`만 실제 구현이 있고, 나머지 3개(`authenticationManager`/`jdbcUserDetailsManager`/`persistentTokenRepository`)는 자리만 잡아둔 채 `return null`
 - `DataSource dataSource`를 필드로 주입은 받아뒀지만 아직 어디에도 사용하지 않음. 다음 작업에서 `JdbcUserDetailsManager(dataSource)`처럼 DB 연동을 채워 넣을 자리임
-- **주의**: 이 상태로 실제 로그인(`/member/login_process`)을 시도하면 인증 처리 로직이 없어 정상 동작하지 않음. 오늘 커밋은 필터 체인 골격과 화면까지만 완성
+- **주의**: 이 상태로 실제 로그인(`/member/login_process`)을 시도하면 인증 처리 로직이 없어 정상 동작하지 않음. 필터 체인 골격과 화면까지만 완성된 상태임
 
 ---
 
