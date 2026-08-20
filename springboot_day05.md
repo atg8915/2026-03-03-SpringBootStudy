@@ -51,8 +51,8 @@ public int[] getPageDataFind(int mode, int page, int rowsize, String fd) {
     return new int[]{page, totalpage, startPage, endPage};
 }
 ```
-- Day04의 `getPageData(page,rowsize)`는 **전체 목록** 기준이었다면, 이건 **검색 조건에 걸리는 건수(count)** 기준으로 별도 계산
-- `mode` 값으로 제목검색(1)/쉐프검색(2)을 분기해서 카운트 쿼리를 다르게 호출 — 하나의 메서드를 재사용하는 설계
+- Day04의 `getPageData(page,rowsize)`는 **전체 목록**을 세던 계산임. 이건 검색 조건에 걸리는 건수(count)를 기준으로 별도 계산함
+- 메서드 하나를 재사용하면서 `mode` 값으로 제목검색(1)/쉐프검색(2)을 분기해 카운트 쿼리만 다르게 호출함
 
 ### 신규: 상세보기 + 전체 건수
 ```java
@@ -85,7 +85,7 @@ public interface RecipeDetailRepository extends JpaRepository<RecipeDetail, Inte
 	public RecipeDetail findByNo(int no);
 }
 ```
-- **목록용 `Recipe`**(제목/포스터/쉐프/조회수만)와 **상세용 `RecipeDetail`**(조리순서·쉐프 소개까지)을 **테이블/엔티티 자체를 분리** — 목록 조회 성능을 위해 상세 컬럼(CLOB 등)을 목록 쿼리에서 제외하는 설계
+- 목록용 `Recipe`에는 제목·포스터·쉐프·조회수만 두고 상세용 `RecipeDetail`에 조리순서와 쉐프 소개까지 담아 **테이블/엔티티 자체를 분리**함. 목록 조회 성능을 위해 상세 컬럼(CLOB 등)을 목록 쿼리에서 제외함
 
 ---
 
@@ -114,7 +114,7 @@ public class RecipeRestController {
 	}
 }
 ```
-- 예외 발생 시 공통적으로 `ResponseEntity.status(INTERNAL_SERVER_ERROR).build()` 반환 (Day02의 GoodsRestController와 동일한 예외 처리 패턴 재사용)
+- 예외 발생 시 공통적으로 `ResponseEntity.status(INTERNAL_SERVER_ERROR).build()` 반환. Day02의 GoodsRestController와 동일한 예외 처리 패턴을 그대로 재사용함
 
 ---
 
@@ -165,8 +165,8 @@ public String recipe_detail(@RequestParam("no") int no, Model model) {
     return "main/main";
 }
 ```
-- **핵심 파싱 로직**: `foodmake` 컬럼 하나(CLOB)에 `설명^이미지경로` 형식으로 줄마다 저장돼 있고, `\n`으로 1차 분리 → `^`로 2차 분리해서 두 개의 List로 나눔
-- 화면에서는 `th:each="m,stat:${mList}"`로 돌면서 `iList[stat.index]`로 같은 순서의 이미지를 매칭 (인덱스 동기화 패턴)
+- 핵심은 파싱 로직임. `foodmake` 컬럼 하나(CLOB)에 `설명^이미지경로` 형식으로 줄마다 저장돼 있어서 `\n`으로 1차 분리 → `^`로 2차 분리해서 두 개의 List로 나눔
+- 화면에서는 인덱스 동기화 패턴을 씀. `th:each="m,stat:${mList}"`로 돌면서 `iList[stat.index]`로 같은 순서의 이미지를 매칭함
 
 ---
 
@@ -199,7 +199,7 @@ let findApp=Vue.createApp({
 }).mount(".container")
 </script>
 ```
-> **이번에 배운 핵심 패턴**: Controller가 `model.addAttribute("chef", chef)`로 넘긴 값을 화면의 `<script>` 안에서 `[[${chef}]]`로 꺼내 **JS 변수로 굳혀서** Vue의 `data()` 초기값에 연결 — 서버 렌더링(Thymeleaf)과 클라이언트 렌더링(Vue)을 한 페이지 안에서 이어붙이는 방식
+> 이번에 배운 핵심 패턴임. Controller가 `model.addAttribute("chef", chef)`로 넘긴 값을 화면의 `<script>` 안에서 `[[${chef}]]`로 꺼내 **JS 변수로 굳혀서** Vue의 `data()` 초기값에 연결함. Thymeleaf의 서버 렌더링과 Vue의 클라이언트 렌더링을 한 페이지 안에서 이어붙임
 
 ### find.html — 검색어 입력 + Vue 반응형 상태
 ```html
@@ -213,7 +213,7 @@ find(){
   this.dataRecv()
 }
 ```
-- `v-model`로 입력값을 실시간 바인딩, `$refs`로 DOM 포커스 제어 (Vue Composition 없이 Options API 그대로 사용)
+- `v-model`로 입력값을 실시간 바인딩함. DOM 포커스 제어는 `$refs`가 맡음. Vue Composition 없이 Options API 그대로 사용함
 
 ### detail.html — 조리순서 인덱스 동기화 출력
 ```html
@@ -224,7 +224,7 @@ find(){
   </tr>
 </table>
 ```
-- `th:each="m,stat:${mList}"`의 `stat.index`로 **다른 리스트(iList)의 같은 순번 항목**을 함께 출력 (Day01에서 정리했던 `status.index/count/first/last` 문법의 실전 활용 예시)
+- `th:each="m,stat:${mList}"`의 `stat.index`로 다른 리스트(iList)의 같은 순번 항목을 함께 출력함. Day01에서 정리했던 `status.index/count/first/last` 문법을 여기서 실전 활용함
 
 ---
 
@@ -301,7 +301,7 @@ checkout → JDK21 세팅 → gradlew 빌드 → 기존 프로세스 종료 → 
 
 ### ⚠️ 오늘의 교훈
 > **Git Actions 연동 시 서버가 자꾸 꺼지는 문제 발생 → 원인은 러너(RUNNER) 이름과 워크플로우 안의 jar 파일명이 정확히 일치하지 않았기 때문.**
-> `nohup java -jar build/libs/<프로젝트명>-<버전>-SNAPSHOT.jar` 의 파일명이 실제 빌드 산출물 이름과 한 글자라도 다르면 실행이 실패하고, 러너 등록 시 지정한 이름도 워크플로우와 어긋나면 배포 자체가 안 됨.
+> `nohup java -jar build/libs/<프로젝트명>-<버전>-SNAPSHOT.jar` 의 파일명이 실제 빌드 산출물 이름과 한 글자라도 다르면 실행이 실패함. 러너 등록 시 지정한 이름이 워크플로우와 어긋나도 배포 자체가 안 됨.
 > → **RUNNER 이름과 jar 파일명(빌드 산출물 경로)을 항상 정확히 맞춰야 한다.**
 
 ---
@@ -330,3 +330,4 @@ checkout → JDK21 세팅 → gradlew 빌드 → 기존 프로세스 종료 → 
 ```
 
 ---
+
