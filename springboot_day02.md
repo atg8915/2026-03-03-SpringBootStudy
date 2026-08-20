@@ -1,4 +1,6 @@
-# 📘 Spring Boot Day 02 — AOP + 예외처리 + Food/Goods CRUD(Thymeleaf vs Vue) + Docker 배포
+# Spring Boot Day 02
+
+AOP + 예외처리 + Food/Goods CRUD(Thymeleaf vs Vue) + Docker 배포
 
 ## 0. 핵심 빠른 참조
 
@@ -20,7 +22,7 @@
 
 ---
 
-## 1. AOP — 공통 기능 분리 (`FoodAOP.java`)
+## 1. AOP (`FoodAOP.java`)
 
 ```java
 @Aspect  // 공통으로 적용되는 기능
@@ -46,9 +48,9 @@ public class FoodAOP {
 }
 ```
 
-- **적용 위치**: `com.sist.web.controller` 패키지의 `*Controller` 클래스, 모든 메서드
-- **동작 시점 비교**: `@Before`(진입 전) / `@After`(finally) / `@AfterThrowing`(catch) / `@AfterReturning`(정상 반환) / `@Around`(진입 전+후 모두, `try` 감싸는 개념)
-- **용도 예시(주석 기준)**: 트랜잭션 처리, 로그 파일 기록, 공통 Footer 데이터, 쿠키 처리 등 여러 Controller에 반복되는 로직을 한 곳으로 분리
+- `com.sist.web.controller` 패키지 아래 `*Controller` 클래스의 모든 메서드에 걸림
+- 동작 시점은 `@Before`가 진입 전, `@After`가 finally, `@AfterThrowing`이 catch, `@AfterReturning`이 정상 반환. `@Around`는 진입 전과 후를 모두 잡아 `try`로 감싸는 개념임
+- 주석에 적힌 용도 예시는 트랜잭션 처리, 로그 파일 기록, 공통 Footer 데이터, 쿠키 처리. Controller마다 반복되는 로직을 한 곳으로 분리함
 
 ---
 
@@ -65,8 +67,8 @@ public class CommonsException {
 }
 ```
 
-- `@ControllerAdvice` : 모든 Controller에서 발생하는 예외를 한 클래스에서 통합 처리
-- `@ExceptionHandler(예외타입.class)` : 특정 예외가 발생했을 때 실행할 메서드 지정 (Exception / Throwable 각각 대응)
+- `@ControllerAdvice`를 붙이면 모든 Controller에서 발생하는 예외를 한 클래스가 받아 통합 처리함
+- `@ExceptionHandler(예외타입.class)`는 특정 예외가 발생했을 때 실행할 메서드를 지정. Exception과 Throwable을 각각 잡아 대응시킴
 
 ---
 
@@ -128,13 +130,14 @@ ThymeLeaf 전송 (JSP=> Java+HTML 대비 → HTML + Model → 파싱)
 
 ---
 
-## 4. Food 모듈 — Thymeleaf 서버사이드 렌더링 방식
+## 4. Food 모듈
 
-### FoodEntity (테이블: `food`)
-- PK: `no`
-- 주요 필드: `cno, likecount, jjimcount, hit, replycount`(int) / `name, reserve, images, address, phone, parking, poster, time, content, price, theme, type`(String) / `score`(double)
+Thymeleaf 서버사이드 렌더링 방식.
 
-### FoodRepository — 메서드 이름 규칙 (주석 정리)
+### FoodEntity (`food` 테이블)
+- PK는 `no`. 주요 필드는 int로 `cno, likecount, jjimcount, hit, replycount`, String으로 `name, reserve, images, address, phone, parking, poster, time, content, price, theme, type`, double로 `score`
+
+### FoodRepository 메서드 이름 규칙
 ```text
 findByNo(int no)                → SELECT * FROM food WHERE no=?
 findByAddressContains(address)  → LIKE '%address%'
@@ -147,7 +150,7 @@ findByOrderBy컬럼명Desc          → ORDER BY ... DESC
 count() / save() / delete()     → 기본 제공
 ```
 
-### FoodServiceImpl — 페이징 + 조회수 처리 핵심 로직
+### FoodServiceImpl 페이징 + 조회수 처리 핵심 로직
 ```java
 // 목록: 페이지당 12건, no 오름차순 정렬
 Pageable pg = PageRequest.of(page-1, 12, Sort.by(Sort.Direction.ASC,"no"));
@@ -165,9 +168,9 @@ startPage = ((page-1)/BLOCK*BLOCK)+1
 endPage   = ((page-1)/BLOCK*BLOCK)+BLOCK  (totalpage 초과 시 totalpage로 보정)
 ```
 
-> 계층 역할 주석: **Controller**(요청값·결과값만 다룸, JSP/HTML 전송) → **Service**(요청 처리) → **Repository**(DB 연결만)
+> 주석으로 남긴 계층 역할. Controller는 요청값·결과값만 다뤄 JSP/HTML을 전송하고, Service가 요청을 처리하고, Repository는 DB 연결만 맡음
 
-### FoodController — 목록/상세
+### FoodController 목록·상세
 ```text
 GET /food/list?page=n
   → foodListData(page) + getPageData(page)
@@ -181,16 +184,17 @@ GET /food/detail?no=n
 ```
 
 ### list.html / detail.html (Thymeleaf)
-- 목록: `th:each="vo:${list}"` + `@{/food/detail(no=${vo.no})}` 링크, 페이징은 `th:if="${startPage>1}"` / `#numbers.sequence(startPage,endPage)` / `th:class="${curpage==i?'active':''}"` 로 처리
-- 상세: `[[${vo.name}]]` 인라인 표현식으로 각 필드 출력, `th:src="${vo.poster}"` 로 이미지 출력
+- 목록 화면은 `th:each="vo:${list}"`로 돌리고 `@{/food/detail(no=${vo.no})}` 링크를 검. 페이징은 `th:if="${startPage>1}"`, `#numbers.sequence(startPage,endPage)`, `th:class="${curpage==i?'active':''}"` 로 처리
+- 상세 화면은 `[[${vo.name}]]` 인라인 표현식으로 각 필드를 출력하고, 이미지는 `th:src="${vo.poster}"`
 
 ---
 
-## 5. Goods 모듈 — Vue.js + REST API 방식 (Food와 대비)
+## 5. Goods 모듈
 
-### GoodsEntity (테이블: `goods_all`)
-- PK: `no`
-- 주요 필드: `goods_discount, hit, replycount, jjimcount`(int) / `goods_name, goods_sub, goods_price, goods_first_price, goods_poster, goods_delivery`(String)
+Vue.js + REST API 방식으로, Food와 대비됨.
+
+### GoodsEntity (`goods_all` 테이블)
+- PK는 `no`. 주요 필드는 int로 `goods_discount, hit, replycount, jjimcount`, String으로 `goods_name, goods_sub, goods_price, goods_first_price, goods_poster, goods_delivery`
 
 ### GoodsController vs GoodsRestController
 ```text
@@ -206,7 +210,7 @@ GoodsRestController (@RestController)
 ```
 
 ### GoodsServiceImpl
-- Food와 동일한 페이징 로직(12건, BLOCK=10) + `save()` 기반 hit 증가 패턴 재사용
+- 페이징 로직은 12건·BLOCK=10으로 Food와 동일하고, `save()` 기반 hit 증가 패턴도 그대로 재사용
 
 ### list.html (Vue 3 + Axios)
 ```javascript
@@ -217,8 +221,8 @@ dataRecv(): axios.get('/goods/list_vue', {params:{page:curpage}})
 move(page): curpage 변경 → dataRecv() 재호출 (페이지 클릭 시 서버 재요청)
 range(start,end): 페이지 번호 배열 생성 (v-for용)
 ```
-- 템플릿 문법: `v-for="vo in list"`, `{{vo.goods_name}}`, `:src="vo.goods_poster"`, `@click="move(i)"`
-- **Food(Thymeleaf)와의 차이**: Food는 서버가 매 요청마다 완성된 HTML을 내려주고, Goods는 최초 빈 HTML만 받은 뒤 Vue가 JSON을 받아 화면을 그림 (SSR vs CSR 대비 구조)
+- 템플릿 문법은 `v-for="vo in list"`, `{{vo.goods_name}}`, `:src="vo.goods_poster"`, `@click="move(i)"`
+- Food(Thymeleaf)와의 차이는 여기서 갈림. Food는 서버가 매 요청마다 완성된 HTML을 내려주고, Goods는 최초 빈 HTML만 받은 뒤 Vue가 JSON을 받아 화면을 그림. SSR과 CSR의 대비 구조임
 
 ---
 
@@ -252,12 +256,14 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
 ```
-- 주석 메모: JPA/Hibernate가 DB별 SQL 문법을 자동 생성 (`NVL` vs `IFNULL`, `OFFSET` vs `LIMIT`, `SYSDATE`/`NOW()`/`CURRENT_DATE` 등 DB마다 다름)
+- JPA/Hibernate가 DB별 SQL 문법을 자동 생성한다고 주석에 메모해 둠. `NVL` vs `IFNULL`, `OFFSET` vs `LIMIT`, `SYSDATE`/`NOW()`/`CURRENT_DATE` 등 DB마다 다름
 - 하단에 `# security / # spring ai / # websocket = 카프카` 로 다음 학습 예정 항목 메모
 
 ---
 
-## 7. 우분투 26 서버 환경 설정 (실습 순서 그대로 정리)
+## 7. 우분투 26 서버 환경 설정
+
+실습 순서 그대로 정리.
 
 ```bash
 # 1) SSH 설치 및 실행
@@ -307,7 +313,10 @@ sudo apt install docker-ce docker-ce-cli containerd.io -y
 sudo docker login atg8915   # 도커허브 계정
 ```
 
-### Dockerfile (프로젝트 클론 폴더 안에 위치해야 함 ⚠️)
+### Dockerfile
+
+프로젝트 클론 폴더 안에 위치해야 함.
+
 ```dockerfile
 FROM eclipse-temurin-21-jdk
 WORKDIR /app
@@ -328,7 +337,10 @@ ENTRYPOINT ["java","-jar","app.jar"]
 ⑦ sudo docker ps -a                             # 실행 확인
 ```
 
-### 방화벽 확인 (선택, 확인 후 바로 지워도 됨)
+### 방화벽 확인
+
+선택 사항. 확인 후 바로 지워도 됨.
+
 ```bash
 sudo netstat -tnlp | grep 8080
 sudo ufw status
