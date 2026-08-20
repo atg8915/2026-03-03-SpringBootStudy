@@ -234,10 +234,3 @@ public class LoginFailHandler implements AuthenticationFailureHandler {
 
 ---
 
-## 9. README 한 줄 요약 (표에 추가할 문구)
-
-```text
-| Day 10 | Spring Security 로그인 골격 도입(SecurityConfig 필터체인/csrf-disable/remember-me/logout), MemberVO·AuthorityVO 신규, login.html/join.html 화면 추가, header.html에 sec:authorize 네임스페이스 준비 — AuthenticationManager 등 인증 Bean 3종은 아직 null(다음 작업 예정) | [📄 보기](./springboot_day10.md) |
-```
-
----
