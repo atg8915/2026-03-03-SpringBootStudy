@@ -1,6 +1,6 @@
 # 📘 Spring Boot Day 07 — 메서드 규칙 vs JPQL vs QueryDSL (Emp/Dept 검색 3방식 비교)
 
-## 0. 핵심 빠른 참조 — 검색 쿼리 3가지 방식 (`EmpJpqlRepository` 상단 주석 총정리)
+## 0. 핵심 빠른 참조 — 검색 쿼리 3가지 방식
 
 | 구분 | 1. 메소드 규칙 | 2. JPQL (`@Query`) | 3. QueryDSL |
 |------|----------------|----------------------|-------------|
@@ -10,11 +10,11 @@
 | 사용처 | 단순 조회 (`findByEmpno(int empno)`처럼 조회 목적 명확한 경우) | 복잡하지 않은 SQL / 수정·삭제 시 주로 사용 | **복잡한 조인 / 필터링 / 페이징** |
 | 실무 비율 메모 | MyBatis와의 사용 빈도 비율 **8:2**로 언급 | — | — |
 
-> **정리 결론(주석)**: 단순 조회는 메소드 규칙(Getter만 있는 interface로 SELECT *), 복잡한 동적 쿼리·검색은 QueryDSL/MyBatis, 수정·삭제·정적 쿼리는 JPQL — **용도별로 3가지를 섞어서 쓰는 설계**
+> 정리 결론(`EmpJpqlRepository` 상단 주석): 단순 조회는 메소드 규칙(Getter만 있는 interface로 SELECT *), 복잡한 동적 쿼리·검색은 QueryDSL/MyBatis, 수정·삭제·정적 쿼리는 JPQL. **용도별로 3가지를 섞어 쓰는 설계**임
 
 ---
 
-## 1. Entity 관계 — Emp ↔ Dept (`@ManyToOne`)
+## 1. Emp ↔ Dept 엔티티 관계 (`@ManyToOne`)
 
 ```java
 @Entity
@@ -45,11 +45,12 @@ public class Emp {
                 | save      | delete
 ```
 - `Dept`는 `deptno`(PK) / `dname` / `loc` 만 가진 단순 엔티티
-- `Emp.dept`처럼 **FK 컬럼을 객체 참조**로 다루는 게 JPA의 핵심 — SQL의 `JOIN`을 `emp.dept.dname`처럼 **점(.) 표기로 자동 처리**
+- `Emp.dept`처럼 FK 컬럼을 **객체 참조**로 매핑함
+- 그래서 SQL의 `JOIN`이 `emp.dept.dname` 같은 점 표기로 자동 처리됨
 
 ---
 
-## 2. Q-class 생성 방법 (`EmpQueryRepository` 상단 주석)
+## 2. Q-class 생성 방법
 
 ```text
 1. Window < Show View < Other < Gradle < Gradle Tasks
@@ -59,10 +60,11 @@ public class Emp {
 
 Q-class : 데이터베이스를 검색할 때 사용하는 Java 코드(자동 생성)
 ```
-- `QEmp.java`, `QDept.java`는 **직접 작성하지 않고 빌드 시 자동 생성**되는 파일 (`@Generated("com.querydsl.codegen.DefaultEntitySerializer")`)
+- 위 절차와 Q-class 설명은 `EmpQueryRepository` 상단 주석에 정리해둔 것임
+- `QEmp.java`, `QDept.java`는 직접 작성하지 않음. 빌드 시 `@Generated("com.querydsl.codegen.DefaultEntitySerializer")`로 자동 생성되는 파일임
 - 생성 안 될 때 체크리스트: `compileJava` 재실행 → Gradle Refresh → Clean 순서로 시도
 
-### QueryFactoryConfig — Bean 등록
+### QueryFactoryConfig에서 Bean 등록
 ```java
 @Configuration
 public class QueryFactoryConfig {
@@ -75,11 +77,11 @@ public class QueryFactoryConfig {
 	}
 }
 ```
-- QueryDSL을 쓰려면 `JPAQueryFactory`를 **Bean으로 등록**해서 Repository에 주입받아야 함
+- QueryDSL을 쓰려면 `JPAQueryFactory`를 Bean으로 등록해서 Repository에 주입받아야 함
 
 ---
 
-## 3. 메소드 규칙 — `EmpMethodRepository` (주석 SQL 총정리)
+## 3. `EmpMethodRepository` 메소드 규칙 SQL 총정리
 
 ```java
 Emp findByEmpno(int empno);                       // WHERE empno=?
@@ -112,7 +114,7 @@ List<Emp> findByJobNot(String job);                    // WHERE NOT job=?
 
 ---
 
-## 4. JPQL — `EmpJpqlRepository` (`@Query`, 객체 중심 SQL)
+## 4. JPQL `@Query` — `EmpJpqlRepository`
 
 ```java
 @Query("SELECT e FROM Emp e") // Emp는 테이블이 아니라 Entity 객체명 → 반드시 별칭(e) 사용
@@ -152,12 +154,14 @@ List<Emp> findByJobNot(@Param("job") String job);
 List<Emp> findByDeptDeptnoIn(@Param("deptnos") List<Integer> deptnos);
 ```
 - 파라미터 바인딩은 `:이름` + `@Param("이름")` 조합
-- `JOIN e.dept d`처럼 **JPQL에서도 별칭(alias)이 필수**
-- 주석에 남은 미완성 예시: `findTop3ByOrderBySalDesc()`용 `@Query("SELECT e FROM Emp e ORDER BY e.sal DESC")` — Top-N은 JPQL만으로는 제한이 애매해서 주석처리된 채 남아있음(→ QueryDSL의 `.limit()`로 해결)
+- `JOIN e.dept d`처럼 JPQL에서도 별칭이 필수임
+- 주석에 남은 미완성 예시: `findTop3ByOrderBySalDesc()`용 `@Query("SELECT e FROM Emp e ORDER BY e.sal DESC")`
+  - Top-N은 JPQL만으로는 제한이 애매해서 주석처리된 채 남아있음
+  - 대신 QueryDSL의 `.limit()`로 해결
 
 ---
 
-## 5. QueryDSL — `EmpQueryRepository` (Q-class 기반 쿼리 빌더)
+## 5. QueryDSL 쿼리 빌더 (`EmpQueryRepository`)
 
 ### 기본 구조
 ```java
@@ -220,11 +224,11 @@ QDept dept = QDept.dept;
 queryFactory.from(emp).join(emp.dept, dept).where(dept.dname.eq(dname)).fetch()
 queryFactory.from(emp).join(emp.dept, dept).where(dept.dname.contains(dname)).fetch()
 ```
-> QueryDSL은 항상 **`QEmp.emp` 같은 Q-class를 먼저 선언**하고 `queryFactory.from(Q객체)`로 시작 — JPQL의 문자열 대신 **메서드 체이닝으로 조건을 조립**하는 게 핵심 차이
+> QueryDSL은 항상 `QEmp.emp` 같은 Q-class를 먼저 선언하고 `queryFactory.from(Q객체)`로 시작함. JPQL이 문자열로 쿼리를 쓴다면 QueryDSL은 메서드 체이닝으로 조건을 조립함
 
 ---
 
-## 6. EmpController — 세 방식 호출 실험 (주석 처리로 하나씩 테스트한 흔적)
+## 6. EmpController에서 세 방식 호출 실험
 
 ```java
 @Controller
@@ -244,8 +248,8 @@ public class EmpController {
 	}
 }
 ```
-- 화면(View) 없이 **콘솔 출력으로만 결과를 확인**하는 실습 방식 — 반환 타입이 `void`인 것도 이 때문
-- `EntityManager`로 JPQL을 **Repository 없이 직접 실행**하는 방법도 주석으로 남아있음:
+- 화면 없이 콘솔 출력으로만 결과를 확인하는 실습임. 반환 타입이 `void`인 것도 이 때문
+- `EntityManager`로 JPQL을 Repository 없이 직접 실행하는 방법도 주석으로 남아있음:
   ```java
   String jpql = "SELECT e FROM Emp e ORDER BY e.sal DESC";
   List<Emp> list = em.createQuery(jpql, Emp.class).setMaxResults(5).getResultList();
@@ -253,7 +257,7 @@ public class EmpController {
 
 ---
 
-## 7. application.yml — 환경변수로 민감정보 분리 (이전 Day 대비 변경점)
+## 7. application.yml 민감정보를 환경변수로 분리
 
 ```yaml
 spring:
@@ -263,7 +267,10 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: oracle.jdbc.driver.OracleDriver
 ```
-- 지금까지(Day01~06)는 `url/username/password`를 **yml에 직접 하드코딩**했는데, 오늘부터는 **`${환경변수명}`** 형식으로 분리 — 실제 값은 OS 환경변수나 Git Actions Secrets에서 주입하는 구조로 전환된 것으로 보임 (레포에 DB 계정정보가 그대로 노출되지 않도록 하는 보안 조치)
+- Day01~06까지는 `url/username/password`를 yml에 직접 하드코딩했음
+- 오늘부터는 `${환경변수명}` 형식으로 분리함
+  - 레포에 DB 계정정보가 그대로 노출되지 않게 하는 보안 조치임
+  - 실제 값을 OS 환경변수로 주입할지 Git Actions Secrets로 주입할지는 확인 필요
 
 ---
 
@@ -292,3 +299,4 @@ spring:
 ```
 
 ---
+
