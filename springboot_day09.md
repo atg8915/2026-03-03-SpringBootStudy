@@ -12,7 +12,7 @@
 | DB 계정정보 | Day07부터 `${DB_URL}` 등 환경변수 분리 (계속 유지) | 동일하게 환경변수 분리 유지 (`${DB_URL}`, `${DB_USERNAME}`, `${DB_PASSWORD}`) |
 | 서버 포트 | (이전 프로젝트 값) | `9090` |
 
-> 오늘 커밋은 메시지가 `"1111"`로 부실하지만, diff를 보면 **완전히 새로운 프로젝트의 초기 골격 1커밋**임 — build.gradle, gradle wrapper, Application 클래스, Controller/Mapper/Service/VO, application.yml, Thymeleaf 템플릿 3개, Dockerfile, git 설정 파일까지 한 번에 추가됨
+> 오늘 커밋은 메시지가 `"1111"`로 부실하지만 diff상으로는 완전히 새로운 프로젝트의 초기 골격 1커밋임. build.gradle, gradle wrapper, Application 클래스, Controller/Mapper/Service/VO, application.yml, Thymeleaf 템플릿 3개, Dockerfile, git 설정 파일까지 한 번에 추가됨
 
 ---
 
@@ -25,8 +25,8 @@
 *.bat text eol=crlf
 *.jar binary
 ```
-- 줄바꿈(EOL) 문제를 막기 위해 `gradlew`는 LF, `.bat`은 CRLF로 강제 고정 (Windows/Linux 혼용 개발 환경 대비)
-- `.gitignore`는 Spring Initializr 기본 템플릿 그대로 (`.gradle`, `build/`, IDE 설정 폴더 등 제외)
+- Windows/Linux를 혼용하는 개발 환경에서 줄바꿈(EOL)이 틀어지지 않도록 `gradlew`는 LF, `.bat`은 CRLF로 강제 고정
+- `.gitignore`는 Spring Initializr 기본 템플릿 그대로 두고 `.gradle`, `build/`, IDE 설정 폴더 등을 제외함
 
 ### `Dockerfile`
 ```dockerfile
@@ -37,7 +37,7 @@ EXPOSE 8080
 ENTRYPOINT ["java","-jar","app.jar"]
 ```
 - Java 21 기반 이미지로 빌드된 jar를 실행하는 가장 단순한 형태
-- `EXPOSE 8080`이지만 `application.yml`의 실제 포트는 `9090` → **컨테이너 실행 시 포트 매핑에서 주의 필요** (`-p 9090:9090`으로 맞추거나 Dockerfile의 EXPOSE 값을 9090으로 통일해야 함)
+- `EXPOSE 8080`인데 `application.yml`의 실제 포트는 `9090`이라 컨테이너 실행 시 포트 매핑에 주의 필요. `-p 9090:9090`으로 맞추거나 Dockerfile의 EXPOSE 값을 9090으로 통일해야 함
 
 ### `settings.gradle`
 ```groovy
@@ -80,8 +80,8 @@ dependencies {
 	...(test 의존성 동일 패턴)
 }
 ```
-- **JPA + MyBatis + QueryDSL을 처음부터 동시에 선언** — Day07에서 정리했던 "단순 조회는 메소드규칙, 정적 SQL은 JPQL, 복잡한 동적쿼리는 QueryDSL, MyBatis는 그 외 케이스" 조합을 이 프로젝트에서도 그대로 이어갈 준비
-- 다만 오늘 커밋에는 **`@Entity`가 붙은 실제 JPA 엔티티나 QueryDSL Q-class가 아직 없음** → VO들이 `jakarta.persistence.Entity`/`Id`/`Table`을 import만 해두고 실제로는 `@Data`만 붙인 순수 DTO 상태 (JPA 전환 전 단계로 추정)
+- JPA + MyBatis + QueryDSL을 처음부터 동시에 선언함. "단순 조회는 메소드규칙, 정적 SQL은 JPQL, 복잡한 동적쿼리는 QueryDSL, MyBatis는 그 외 케이스"라는 Day07 조합을 이 프로젝트에서도 이어갈 준비
+- 다만 오늘 커밋에는 `@Entity`가 붙은 실제 JPA 엔티티나 QueryDSL Q-class가 아직 없음. VO들이 `jakarta.persistence.Entity`/`Id`/`Table`을 import만 해두고 실제로는 `@Data`만 붙인 순수 DTO 상태이며, JPA 전환 전 단계임
 - Gradle Wrapper `9.5.1`로 업데이트됨 (`gradle-wrapper.properties`)
 
 ---
@@ -106,7 +106,7 @@ public class RouterController {
   <th:block th:include="${main_html}"></th:block>
 </body>
 ```
-- Day03에서 정리했던 **"main_html 모델 속성으로 include 대상을 스위칭"하는 레이아웃 패턴**을 이 프로젝트에서도 그대로 채택
+- 레이아웃 패턴은 Day03 방식을 채택함. `main_html` 모델 속성으로 include 대상을 스위칭하는 구조임
 - `/` 요청 → `main_html="main/home"` 세팅 → `main.html`이 `header` + `home`을 조립해서 렌더링
 
 ### `main.html` — CDN 스크립트 로드 순서
@@ -119,8 +119,8 @@ public class RouterController {
 <script src="https://unpkg.com/vue-demi"></script>
 <script src="https://unpkg.com/pinia@2.1.7/dist/pinia.iife.prod.js"></script>
 ```
-- jQuery/Bootstrap(화면 스타일) → Vue3 → axios → **vue-demi → Pinia** 순서로 로드
-- Pinia는 Vue2/Vue3를 모두 지원하기 위해 내부적으로 `vue-demi`에 의존하므로, **Pinia 스크립트보다 vue-demi를 먼저 로드**해야 하는 것이 CDN 방식의 핵심 포인트 (프로젝트명이 "Pinia"인 이유가 여기서 드러남 — 상태관리를 Pinia로 가져가겠다는 세팅)
+- jQuery/Bootstrap(화면 스타일) → Vue3 → axios → vue-demi → Pinia 순서로 로드
+- Pinia는 Vue2/Vue3를 모두 지원하려고 내부적으로 `vue-demi`에 의존함. 그래서 CDN 방식에서는 Pinia 스크립트보다 vue-demi를 먼저 로드해야 함. 프로젝트명이 "Pinia"인 것도 상태관리를 Pinia로 가져가겠다는 세팅에서 나온 이름임
 
 ---
 
@@ -142,9 +142,9 @@ public interface FoodMapper {
 	public void foodHitIncrement(int no);
 }
 ```
-- `foodListData`만 **XML 매퍼**(`food-mapper.xml`)에 SQL을 두고, 나머지는 **어노테이션**으로 직접 SQL을 붙임
-  → 인터페이스 상단 주석에 남긴 원칙: *"XML = SQL이 복잡한 경우, 단순한 SQL은 어노테이션"* 을 그대로 실천
-- 인터페이스 상단에는 **스프링 어노테이션 치트시트 주석**도 함께 정리해둠 (`@Repository`/`@Service`/`@Controller`/`@RestController`/`@Component`/`@ControllerAdvice`/`@Configuration` 각각의 역할)
+- `foodListData`만 XML 매퍼(`food-mapper.xml`)에 SQL을 두고 나머지는 어노테이션으로 직접 SQL을 붙임
+  → 인터페이스 상단 주석에 남긴 원칙 *"XML = SQL이 복잡한 경우, 단순한 SQL은 어노테이션"* 을 실천한 구성임
+- 인터페이스 상단에는 `@Repository`/`@Service`/`@Controller`/`@RestController`/`@Component`/`@ControllerAdvice`/`@Configuration` 각각의 역할을 정리한 스프링 어노테이션 치트시트 주석도 함께 남김
 
 ### `food-mapper.xml` — 페이징 SQL (⚠ 오타 존재)
 ```xml
@@ -155,8 +155,8 @@ public interface FoodMapper {
    OFFFSET #{start} ROWS FETCH NEXT 12 ROWS ONLY
 </select>
 ```
-- `OFFFSET` → Oracle 표준 키워드는 `OFFSET`(F 한 개) — **현재 상태로는 실행 시 SQL 문법 오류가 날 오타**. 다음 작업 때 반드시 수정 필요
-- `12`가 하드코딩되어 있어 페이지당 행 수를 바꾸려면 XML을 직접 수정해야 함 (Day04에서 정리했던 "rowsize 매개변수화" 패턴이 아직 적용 전)
+- Oracle 표준 키워드는 `OFFSET`(F 한 개)인데 `OFFFSET`으로 적혀 있음. 현재 상태로는 실행 시 **SQL 문법 오류**가 날 오타이므로 다음 작업 때 반드시 수정 필요
+- `12`가 하드코딩되어 있어 페이지당 행 수를 바꾸려면 XML을 직접 수정해야 함. Day04의 "rowsize 매개변수화" 패턴은 아직 적용 전
 
 ---
 
@@ -177,8 +177,8 @@ public int[] foodPages(int page) {
 	return null;
 }
 ```
-- `foodListData`/`foodTotalPage`/`foodDetailData`는 Mapper를 그대로 위임(delegate)하도록 구현 완료
-- `foodPages(int page)`(페이지 번호 배열 계산 — Day04에서 다룬 `pages[]` 패턴으로 추정)는 **아직 구현 전(`return null`)** → 다음 커밋에서 채워질 부분
+- `foodListData`/`foodTotalPage`/`foodDetailData`는 Mapper로 위임(delegate)하도록 구현 완료
+- `foodPages(int page)`는 아직 구현 전이라 `return null` 상태임. 페이지 번호 배열을 계산하는 메소드로 Day04에서 다룬 `pages[]` 패턴에 해당하며, 다음 커밋에서 채워질 부분
 
 ---
 
@@ -191,7 +191,7 @@ public int[] foodPages(int page) {
 | `RecipeDetailVO` | (레시피 상세용) | no, poster, title, chef, chef_poster, chef_profile, info1~3, content, foodmake | Day05의 "RecipeDetail 분리" 패턴 재사용 |
 | `ChefVO` | (쉐프 정보용) | chef, poster, mem_cont1~3, mem_cont7 | 오늘 신규 등장 — 아직 사용하는 Controller/Service 없음 |
 
-- 모든 VO가 `jakarta.persistence.Entity`/`Id`를 **import는 해두고 붙이지는 않은 상태** → 현재는 순수 MyBatis용 VO, 추후 JPA Entity로 전환할 여지를 남겨둔 것으로 판단
+- 모든 VO가 `jakarta.persistence.Entity`/`Id`를 import는 해두고 붙이지는 않은 상태임. 현재는 순수 MyBatis용 VO이고 추후 JPA Entity로 전환할 여지를 남겨둔 구조임
 
 ---
 
@@ -229,9 +229,9 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
 ```
-- DB 계정정보는 Day07의 원칙(`${환경변수}`)을 그대로 유지 — **실제 서버 IP/계정/비밀번호는 코드/노트 어디에도 노출하지 않음**
-- `logging.level`에 `org.hibernate.orm.jdbc.bind: TRACE`까지 켜둬서 **바인딩 파라미터 값까지 콘솔에서 확인 가능**하도록 설정 (개발 단계 디버깅용, 운영에서는 낮춰야 함)
-- 파일 하단에 `# security`, `# spring ai`, `# websocket = 카프카` 주석만 남기고 비워둠 → **향후 추가 예정 기능 목록**으로 보임 (오늘은 미구현)
+- DB 계정정보는 Day07의 `${환경변수}` 원칙을 그대로 유지함. 실제 서버 IP/계정/비밀번호는 코드에도 노트에도 노출하지 않음
+- `logging.level`에 `org.hibernate.orm.jdbc.bind: TRACE`까지 켜둬서 바인딩 파라미터 값까지 콘솔에서 확인 가능함. 개발 단계 디버깅용이라 운영에서는 레벨을 낮춰야 함
+- 파일 하단에 `# security`, `# spring ai`, `# websocket = 카프카` 주석만 남기고 비워둠. 향후 추가 예정 기능 목록인 듯하며 오늘은 미구현
 
 ---
 
@@ -267,6 +267,44 @@ logging:
 
 [보안]
 ⑪ application.yml의 DB 계정정보는 반드시 ${DB_URL} 등 환경변수로 분리 (Day07 원칙 유지)
+```
+
+---
+
+## 10. GitHub Actions 배포 — Repository Secrets로 DB 계정정보 감추기
+
+### 세팅 경로
+```text
+리포지토리 → Settings → Secrets and variables → Actions
+→ New repository secret → 이름/값 입력 (DB_URL, DB_USERNAME, DB_PASSWORD)
+```
+- `application.yml`에 이미 적용한 "${DB_URL} 등 환경변수로 분리" 원칙을 GitHub Actions 워크플로우 실행 시점까지 이어가는 세팅임
+- 코드에도 워크플로우 파일에도 실제 값이 노출되지 않고 `secrets.DB_URL` 같은 참조로만 사용됨
+
+### 워크플로우 안에서 `.env` 파일로 만들어 주입하는 단계
+```yaml
+      - run: |
+         echo "======================="
+         echo "환경변수 설정"
+         echo "======================="
+         rm -f .env
+         touch .env
+         echo "DB_URL=${{ secrets.DB_URL }}" >> .env
+         echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+         echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+         echo ".env 저장 완료"
+```
+- self-hosted 러너(Ubuntu)에서 배포 직전에 실행되는 스텝
+- `rm -f .env` → `touch .env`로 매번 새로 비운 뒤, Repository Secrets에 등록해둔 값을 `>>`로 한 줄씩 append하여 `.env` 파일을 새로 생성
+- 이렇게 만들어진 `.env`는 이후 `docker run --env-file .env ...` 형태로 컨테이너에 주입됨. Dockerfile이나 이미지 안에는 DB 계정정보가 전혀 포함되지 않음
+- Secrets는 워크플로우 실행 중에만 메모리상 치환됨. 실제 값이 로그나 워크플로우 파일에 그대로 찍히지 않도록 GitHub Actions가 마스킹 처리해줌
+
+---
+
+## 11. README 한 줄 요약 (표에 추가할 문구)
+
+```text
+| Day 09 | `SpringPiniaProject_2` 신규 프로젝트 초기 스캐폴딩(Food/Recipe/Chef 재시작), MyBatis 어노테이션+XML 혼용 패턴, main.html에 Vue3+axios+vue-demi+Pinia CDN 연동, Dockerfile/.gitattributes 추가, application.yml DB정보 환경변수 유지 | [📄 보기](./springboot_day09.md) |
 ```
 
 ---
