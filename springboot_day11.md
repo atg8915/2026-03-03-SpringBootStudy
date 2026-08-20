@@ -331,10 +331,4 @@ conn=DriverManager.getConnection(URL,"<DB계정>","<DB계정>");
 ⑮ 순수 JDBC 예제 코드라도 DB 계정정보를 소스에 하드코딩하지 말고, 최소한 커밋 전에 더미 값으로 교체하는 습관 필요
 ```
 
----
 
-## 7. README 한 줄 요약 (표에 추가할 문구)
-
-```text
-| Day 11 | `SpringPiniaProject_2` Security 인증 3종 Bean 완성(AuthenticationManager/JdbcUserDetailsManager/PersistentTokenRepository), login.html form 추가로 실제 로그인 가능, Docker Compose+GitHub Actions 배포 파이프라인 재정비 / 신규 실습 `SpringSecurityProject_1`(인메모리 UserDetailsService)·`SpringSecurityProject_2`(DB연동 CustomUserDetailsService, failureHandler 연결 누락 버그 발견)·`LamdaProject`(람다식+Stream 문법) | [📄 보기](./springboot_day11.md) |
-```
