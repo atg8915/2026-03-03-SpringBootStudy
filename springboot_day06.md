@@ -1,4 +1,4 @@
-# 📘 Spring Boot Day 06 — 파일 업로드 3종 + DataBoard(첨부파일 게시판) + Git Actions Docker 배포 전환
+# Spring Boot Day 06 — 파일 업로드 3종 + DataBoard(첨부파일 게시판) + Git Actions Docker 배포 전환
 
 ## 0. 핵심 빠른 참조
 
@@ -20,7 +20,7 @@
 | ② Vue+axios | `upload2.html` | `@change="handlerFile"`로 선택 파일을 `this.files`에 저장 → `FormData`에 담아 `axios.post`로 비동기 전송, 성공 시 `alert` |
 | ③ jQuery 동적 행 추가 | `upload3.html` | `Add`/`Remove` 버튼으로 `<input type=file>` 행을 테이블에 동적 추가/삭제 후 한 번에 `<form>` submit |
 
-### upload.html — 폼 2개(단일/다중)
+### upload.html의 단일·다중 폼 2개
 ```html
 <form method="post" action="/upload_ok" enctype="multipart/form-data">
   <input type="file" name="file">
@@ -32,7 +32,7 @@
 </form>
 ```
 
-### upload2.html — Vue + FormData
+### upload2.html의 Vue + FormData
 ```javascript
 data(){ return { files:[] } },
 methods:{
@@ -48,7 +48,7 @@ methods:{
 ```
 - `FormData`에 반복 `append`하면 서버는 `List<MultipartFile> files`로 한 번에 받을 수 있음
 
-### upload3.html — jQuery로 업로드 행 동적 관리
+### upload3.html에서 jQuery로 업로드 행 동적 관리
 ```javascript
 let fileIndex = 0
 $('#addBtn').on('click', function(){
@@ -62,11 +62,11 @@ $('#removeBtn').on('click', function(){
   if (fileIndex > -1) { $('#m'+(fileIndex-1)).remove(); fileIndex-- }
 })
 ```
-- 여러 개의 `<input type=file name="files">`를 동적으로 추가 → 최종적으로 `<form>` submit 한 번으로 전체 전송 (Vue 없이 jQuery만으로 다중 업로드 UX 구현)
+- `<input type=file name="files">`를 동적으로 여러 개 추가한 뒤 `<form>` submit 한 번으로 전체 전송. Vue 없이 jQuery만으로 다중 업로드 UX를 구현함
 
 ---
 
-## 2. UploadRestController — 단일/다중 업로드 API
+## 2. UploadRestController의 단일/다중 업로드 API
 
 ```java
 @RestController
@@ -116,13 +116,14 @@ public class UploadRestController {
 	}
 }
 ```
-- 단일 업로드는 **클래스 필드 `count`**(모든 요청이 공유), 다중 업로드는 **요청마다 지역변수 `cnt`**로 중복 처리 — 방식이 다르게 구현된 점 주의(단일 쪽은 여러 사용자가 동시에 올리면 count가 꼬일 수 있는 잠재적 이슈)
+- 단일 업로드는 클래스 필드 `count`로, 다중 업로드는 요청마다 만드는 지역변수 `cnt`로 중복을 처리함. 같은 문제를 컨트롤러 안에서 다르게 구현했으니 주의
+- `count`는 모든 요청이 공유하므로 여러 사용자가 동시에 올리면 값이 꼬일 수 있음
 
 ---
 
-## 3. DataBoard — 첨부파일 게시판 (MyBatis 기반으로 전환)
+## 3. 첨부파일 게시판 DataBoard (MyBatis 기반으로 전환)
 
-### DataBoardVO — 테이블 명세 + 향후 커리큘럼 메모
+### DataBoardVO 테이블 명세와 향후 커리큘럼 메모
 ```java
 /*
  *  NO/NAME/SUBJECT/CONTENT/PWD/REGDATE/HIT/FILENAME/FILESIZE/FILECOUNT
@@ -147,9 +148,9 @@ public class DataBoardVO {
 	private List<MultipartFile> files;   // 폼에서 받은 첨부파일 목록 (커맨드 객체에 파일 필드 포함)
 }
 ```
-- **이전 Entity들과 다른 점**: `@Entity`가 아니라 순수 VO — DataBoard는 **JPA가 아니라 MyBatis Mapper**로 SQL을 직접 다룸(`DataBoardServiceImpl`이 `DataBoardMapper`를 주입받는 구조)
+- 이전 Entity들과 달리 `@Entity`가 아닌 순수 VO임. DataBoard는 JPA가 아니라 MyBatis Mapper로 SQL을 직접 다루고 `DataBoardServiceImpl`이 `DataBoardMapper`를 주입받음
 
-### Service — Mapper 위임 구조
+### Service의 Mapper 위임 구조
 ```java
 public interface DataBoardService {
 	List<DataBoardVO> databoardListData(int start);
@@ -206,12 +207,13 @@ public String databoard_insert_ok(@ModelAttribute("vo") DataBoardVO vo, HttpServ
     return "redirect:/databoard/list";
 }
 ```
-- **여러 파일명을 콤마(,)로 이어붙여 한 컬럼(`FILENAME`)에 저장**하는 방식 (파일마다 행을 나누지 않고 문자열 하나로 관리) → Day05의 `foodmake`를 구분자로 저장했던 방식과 같은 패턴
-- `getRealPath("/upload")`는 **Servlet 컨테이너 기준 실제 경로**를 구하는 방식으로, `UploadRestController`의 `@Value("${file.upload_dir}")`(yml 설정값)와는 다른 접근 — 같은 문제(업로드 폴더 위치)를 컨트롤러마다 다르게 풀고 있다는 점 기억해두기
+- 여러 파일명을 콤마(,)로 이어붙여 한 컬럼 `FILENAME`에 저장함. 파일마다 행을 나누지 않고 문자열 하나로 관리하는 셈. Day05에서 `foodmake`를 구분자로 저장했던 방식과 같음
+- `getRealPath("/upload")`는 Servlet 컨테이너 기준 실제 경로를 구함. yml 설정값을 읽는 `UploadRestController`의 `@Value("${file.upload_dir}")`와는 접근이 다름
+- 업로드 폴더 위치를 정하는 같은 문제를 컨트롤러마다 다르게 처리함
 
 ---
 
-## 4. application.yml — 업로드 관련 설정 추가
+## 4. application.yml에 업로드 설정 추가
 
 ```yaml
 server:
@@ -227,7 +229,7 @@ spring:
 file:
   upload_dir: C:/upload          # UploadRestController가 @Value로 읽는 경로
 ```
-- `spring.servlet.multipart` 설정이 없으면 기본 업로드 용량 제한(기본 1MB)에 걸려 큰 파일 업로드가 실패함 → 이번에 새로 추가된 부분
+- `spring.servlet.multipart` 설정이 없으면 기본 업로드 용량 제한 1MB에 걸려 큰 파일 업로드가 실패함. 이번에 새로 추가함
 
 ---
 
@@ -236,8 +238,8 @@ file:
 ```bash
 sudo usermod -aG docker $USER
 ```
-- 현재 사용자를 `docker` 그룹에 추가 → 이후부터는 **`sudo` 없이 `docker` 명령 실행 가능**
-- Git Actions self-hosted runner가 `sudo` 없이 매 스텝을 실행해야 하므로, 이 설정이 없으면 워크플로우 내 `docker build/run` 명령이 권한 오류로 실패함
+- 현재 사용자를 `docker` 그룹에 추가함. 이후로는 `sudo` 없이 `docker` 명령 실행 가능
+- Git Actions self-hosted runner가 `sudo` 없이 매 스텝을 실행해야 하므로 이 설정이 없으면 워크플로우 내 `docker build/run` 명령이 권한 오류로 실패함
 
 ---
 
@@ -280,7 +282,7 @@ jobs:
       - run: |
           docker run --name mini-app -d -p 8080:8080 mini-app
 ```
-> 이전(Day05)의 `lsof`로 포트 죽이고 `nohup java -jar`로 재실행하던 단계는 **주석 처리되어 남아있음** — 완전히 Docker 컨테이너 배포로 대체된 것 확인
+> Day05에서 `lsof`로 포트를 죽이고 `nohup java -jar`로 재실행하던 단계는 주석 처리되어 남아있음. 배포는 Docker 컨테이너 방식으로 완전히 대체됨
 
 ### 배포 흐름 요약
 ```text
@@ -320,3 +322,4 @@ docker run --name mini-app -d -p 8080:8080 mini-app  (새 컨테이너 기동)
 ```
 
 ---
+
