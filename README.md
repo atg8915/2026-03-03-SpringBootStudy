@@ -62,6 +62,7 @@ Spring Boot
 | Day 10 | Spring Security 로그인 골격 도입(SecurityConfig 필터체인/csrf-disable/remember-me/logout), MemberVO·AuthorityVO 신규, login.html/join.html 화면 추가, header.html에 sec:authorize 네임스페이스 준비 — AuthenticationManager 등 인증 Bean 3종은 아직 null(다음 작업 예정) | [📄 보기](./springboot_day10.md) |
 | Day 11 | `SpringPiniaProject_2` Security 인증 3종 Bean 완성(AuthenticationManager/JdbcUserDetailsManager/PersistentTokenRepository), login.html form 추가로 실제 로그인 가능, Docker Compose+GitHub Actions 배포 파이프라인 재정비 / 신규 실습 `SpringSecurityProject_1`(인메모리 UserDetailsService)·`SpringSecurityProject_2`(DB연동 CustomUserDetailsService, failureHandler 연결 누락 버그 발견)·`LamdaProject`(람다식+Stream 문법) | [📄 보기](./springboot_day11.md) |
 | Day 12 | 미니 쿠버네티스(Minikube) 배포 실습(kubectl/Docker 드라이버 설치, deployment.yaml로 Deployment+NodePort Service 작성, imagePullPolicy Never로 로컬 이미지 배포) / `SpringPiniaProject_2` 댓글 기능 신규(Comment VO/Mapper/Service/RestController), food 상세 화면 카카오맵 연동, Cookie 기반 최근 본 상품, header.html MANAGER 역할 추가 | [📄 보기](./springboot_day12.md) |
+| Day 13 | `SpringPiniaProject_2` 댓글 수정/삭제 API 추가로 CRUD 완성(PUT/DELETE + Pinia 스토어 확장), 작성자 본인만 보이는 수정/삭제 버튼과 인라인 수정 textarea, MyBatis `@Param` import 오류·응답 Map 키 버그 수정 / Minikube 핵심 용어(클러스터·노드·파드·kubectl)와 도커 이미지 배포 흐름 개념 정리 | [📄 보기](./springboot_day13.md) |
 
 ---
 
