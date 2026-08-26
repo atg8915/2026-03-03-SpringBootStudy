@@ -1,4 +1,4 @@
-# 📘 Spring Boot Day 15 — STOMP 채팅에 Spring Security 연동 (SpringPiniaProject_2)
+# 📘 Spring Boot Day 15 — STOMP 채팅에 Spring Security 연동 (SpringPiniaProject_2) + Jenkins CI/CD 도입
 
 ## 0. 핵심 빠른 참조 — Day14 대비 오늘 바뀐 점
 
@@ -170,7 +170,88 @@ Day14까지는 화면 골격만 있고 실제 데이터 바인딩이 비어있�
 
 ---
 
-## 6. 다시 만들 때 체크리스트
+## 6. Jenkins 설치 + ngrok 터널 + GitHub Webhook 연동
+
+| 구분 | 기존 방식 (Day05, GitHub Actions + self-hosted runner) | 오늘 (Jenkins) |
+|------|------------------------------------------------------------|-------------------|
+| 빌드/배포 주체 | GitHub 서버가 워크플로우 실행을 트리거, 실제 실행은 등록된 self-hosted runner가 담당 | Jenkins가 자체 서버에서 빌드/배포 파이프라인을 직접 실행 |
+| 파이프라인 정의 위치 | 저장소 안 `.github/workflows/deploy.yml` | Jenkins 웹 UI(또는 별도 Jenkinsfile)에서 Job으로 정의 |
+| 트리거 방식 | GitHub가 자체적으로 push 이벤트 감지 | GitHub 저장소에 Webhook을 직접 등록해 push 이벤트를 Jenkins로 전달 |
+| 외부 접속 필요 여부 | runner가 GitHub에 아웃바운드로 접속하는 구조라 별도 포트 개방 불필요 | Jenkins는 로컬 8080 포트로 뜨기 때문에 GitHub가 접근 가능하도록 외부에 노출해야 함(ngrok 터널 사용) |
+
+### Jenkins 설치 (Debian 계열, apt 저장소 등록)
+
+```bash
+sudo mkdir -p /etc/apt/keyrings
+
+sudo wget -O /etc/apt/keyrings/jenkins-keyring.asc \
+  https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
+
+echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | \
+  sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+
+sudo apt update
+sudo apt install jenkins -y
+```
+
+- GPG 서명 키를 `/etc/apt/keyrings/`에 받아두고, apt 소스 목록에 `signed-by`로 그 키를 지정하는 방식. 저장소 등록 → 패키지 설치 순서는 일반적인 외부 apt 저장소 추가 패턴과 동일함
+
+### 서비스 등록 + 방화벽 개방
+
+```bash
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+sudo ufw allow 8080
+```
+
+- `enable`까지 해줘야 서버 재부팅 후에도 Jenkins가 자동으로 다시 뜸
+- Jenkins 기본 포트인 8080을 `ufw`로 열어줘야 외부(또는 ngrok)에서 접근 가능
+
+### 초기 관리자 비밀번호 확인
+
+```bash
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+```
+
+- 설치 직후 1회용으로 생성되는 초기 로그인 비밀번호. 실제 값은 `<Jenkins 초기 관리자 비밀번호>` 형태로 마스킹해서 기록해야 함(그대로 노출하면 설치 직후 아무나 Jenkins 관리자로 로그인 가능한 취약점이 됨)
+
+### ngrok으로 로컬 Jenkins를 외부에 노출
+
+```bash
+ngrok http 8080
+```
+
+- 로컬 8080에서 뜬 Jenkins를 외부에서 접속 가능한 `https://<ngrok 터널 URL>` 형태의 주소로 터널링해줌
+- GitHub Webhook은 인터넷에서 접근 가능한 주소로만 요청을 보낼 수 있기 때문에, 로컬/사내망에만 떠있는 Jenkins를 그대로는 GitHub와 연동할 수 없어서 ngrok 같은 터널링 도구가 필요함
+
+### 초기 설정 마법사
+
+1. `https://<ngrok 터널 URL>` 접속
+2. 위에서 확인한 `<Jenkins 초기 관리자 비밀번호>` 입력
+3. 추천 플러그인 자동 설치 진행
+4. 관리자 계정 생성 — 계정명은 `admin`, 이름/이메일은 임의로 지정
+
+### GitHub 저장소에 Webhook 등록
+
+- 저장소 **Settings → Webhooks → Add webhook**
+- Payload URL: `https://<ngrok 터널 URL>/github-webhook/`
+
+```text
+[GitHub push 발생]
+        |
+   Webhook 이벤트 전송
+        |
+[ngrok 터널] → 로컬 8080(Jenkins)
+        |
+Jenkins가 등록된 Job 빌드 시작
+```
+
+- `/github-webhook/`은 Jenkins GitHub 플러그인이 미리 정해둔 고정 경로라 임의로 바꾸면 안 됨(끝 슬래시 포함)
+- ngrok 무료 터널은 세션이 끊기면 주소가 바뀔 수 있으므로, 재접속 후 주소가 달라졌다면 GitHub Webhook의 Payload URL도 같이 갱신해줘야 함
+
+---
+
+## 7. 다시 만들 때 체크리스트
 
 ```text
 [STOMP + Security 연동]
@@ -191,4 +272,12 @@ Day14까지는 화면 골격만 있고 실제 데이터 바인딩이 비어있�
 [메시지 송수신 완성]
 ⑩ sendPublic/sendPrivate로 destination을 분리하고, send()에서 currentRoom 기준으로 분기
 ⑪ connect()는 반드시 함수 호출(store.connect())로 실행 — 참조만 저장하면 연결 안 됨
+
+[Jenkins + ngrok + GitHub Webhook]
+⑫ apt 저장소용 GPG 키를 /etc/apt/keyrings/에 받고 signed-by로 소스 목록에 등록 후 apt install jenkins
+⑬ systemctl start + enable로 서비스 등록, ufw allow 8080으로 방화벽 개방
+⑭ /var/lib/jenkins/secrets/initialAdminPassword로 초기 관리자 비밀번호 확인(1회용, 마스킹 필수)
+⑮ ngrok http 8080으로 로컬 Jenkins를 외부 접속 가능한 URL로 터널링
+⑯ 터널 URL 접속 → 초기 비밀번호 입력 → 추천 플러그인 설치 → admin 계정 생성
+⑰ GitHub 저장소 Settings > Webhooks에 Payload URL을 <ngrok 터널 URL>/github-webhook/ 형태로 등록
 ```

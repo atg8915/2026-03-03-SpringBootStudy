@@ -64,7 +64,7 @@ Spring Boot
 | Day 12 | 미니 쿠버네티스(Minikube) 배포 실습(kubectl/Docker 드라이버 설치, deployment.yaml로 Deployment+NodePort Service 작성, imagePullPolicy Never로 로컬 이미지 배포) / `SpringPiniaProject_2` 댓글 기능 신규(Comment VO/Mapper/Service/RestController), food 상세 화면 카카오맵 연동, Cookie 기반 최근 본 상품, header.html MANAGER 역할 추가 | [📄 보기](./springboot_day12.md) |
 | Day 13 | `SpringPiniaProject_2` 댓글 수정/삭제 API 추가로 CRUD 완성(PUT/DELETE + Pinia 스토어 확장), 작성자 본인만 보이는 수정/삭제 버튼과 인라인 수정 textarea, MyBatis `@Param` import 오류·응답 Map 키 버그 수정 / Minikube 핵심 용어(클러스터·노드·파드·kubectl)와 도커 이미지 배포 흐름 개념 정리 | [📄 보기](./springboot_day13.md) |
 | Day 14 | WebSocket+STOMP 채팅 3종 신규 실습 — `SpringWebSocket_1`(jQuery 기반 전체 공개 채팅, `/topic/public` 브로드캐스트) · `SpringWebSocket_2`(Pinia 기반 1:1 개인 채팅, `/queue/private/{id}` 지정 수신) · `SpringPiniaProject_2`(로그인 세션 연동으로 sender 위조 방지, 전체+1:1 채팅 통합, header.html 로그인 사용자 전용 채팅 메뉴) | [📄 보기](./springboot_day14.md) |
-| Day 15 | `SpringPiniaProject_2` 채팅에 Spring Security 연동 — HttpSession 대신 `Principal`로 sender 확인, `/chat/join`+`Set<String>`으로 접속자 목록 브로드캐스트(연결 이벤트 리스너는 아직 미완성), Pinia `currentRoom`에 roomId 직접 저장하는 방식으로 리팩토링, `sendPublic`/`sendPrivate`/`send()` 메시지 전송 완성, `store.connect` 미호출 버그 수정 / Board 관련 빈 스캐폴딩 파일 신규 생성 | [📄 보기](./springboot_day15.md) |
+| Day 15 | `SpringPiniaProject_2` 채팅에 Spring Security 연동 — HttpSession 대신 `Principal`로 sender 확인, `/chat/join`+`Set<String>`으로 접속자 목록 브로드캐스트(연결 이벤트 리스너는 아직 미완성), Pinia `currentRoom`에 roomId 직접 저장하는 방식으로 리팩토링, `sendPublic`/`sendPrivate`/`send()` 메시지 전송 완성, `store.connect` 미호출 버그 수정 / Board 관련 빈 스캐폴딩 파일 신규 생성 / Jenkins 설치(apt 저장소 등록)+ngrok 터널링으로 로컬 서버 외부 노출+GitHub Webhook(`/github-webhook/`) 연동, GitHub Actions self-hosted runner 방식과 비교 | [📄 보기](./springboot_day15.md) |
 
 ---
 
