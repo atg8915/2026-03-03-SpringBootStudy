@@ -70,6 +70,7 @@ Spring Boot
 | Day 18 | 신규 실습 `SpringJWTSecurityProject_1`(인메모리 하드코딩 사용자 + JWT)·`SpringJWTSecurityProject_2`(MyBatis DB연동+다중 권한 + JWT) — Day11 세션 기반 Security 실습을 JWT 무상태 인증 방식으로 재구현, `JwtTokenProvider`(jjwt로 토큰 생성/파싱/검증)+`JwtAuthenticationFilter`(Authorization 헤더 또는 accessToken 쿠키에서 토큰 추출)+`SessionCreationPolicy.STATELESS` 구성 | [📄 보기](./springboot_day18.md) |
 | Day 19 | 신규 프로젝트 `BootLastProject` 초기 스캐폴딩(Edu/Recipe/Main 3도메인 뼈대), AWS EC2 인스턴스(cicdServer) 신규 구축(보안그룹 포트 개방, GitHub Actions 인증용 SSH 키 페어 등록), GitHub Actions로 jar 빌드 후 `rsync` 전송+SSH 접속 `nohup java -jar` 직접 실행 방식 배포 파이프라인 구축(YAML 콜론 공백·heredoc 들여쓰기 실수 수정, DB 계정정보 env 노출 후 서버 .env source 방식으로 전환), Day18 JWT 로직(`JWTAuthenticationProvider` 토큰 발급/파싱/검증)을 새 프로젝트에 이식+Member/Authority Mapper·Service 계층 준비(로그인 흐름은 미완성) | [📄 보기](./springboot_day19.md) |
 | Day 20 | `BootLastProject` 서버(cicdServer)에 Docker+Docker Compose 신규 설치, GitHub Actions 워크플로우에 Docker 이미지 빌드+DockerHub push 단계 추가(서버측 docker pull/run 전환은 미완료, .env 스크립트 변수명 오타 발견), JWT 로그인/로그아웃 REST API 완성+`JWTAuthenticationFilter`를 필터체인에 실제 연결(`addFilterBefore`)+`CustomUserDetailsService` DB 조회 완성, 로그인 화면+로그인 상태별 화면 분기(th:if, sec:authorize) 연동 | [📄 보기](./springboot_day20.md) |
+| Day 21 | 신규 프로젝트 `SpringPostgreProject` 초기 스캐폴딩(PostgreSQL+MyBatis 조합, `@Select` 어노테이션 매퍼, Controller-Mapper 최소 구성), Thymeleaf `th:each`+인라인 표현식(`[[...]]`)으로 목록 출력, Git 브랜치 전략(main/develop/feature) 신규 도입+`gh pr create`/`merge`로 PR 경유 병합 흐름 정리 | [📄 보기](./springboot_day21.md) |
 
 ---
 
