@@ -1,4 +1,4 @@
-# 📘 Spring Boot Day 21 — `SpringPostgreProject` 초기 세팅부터 Oracle↔PostgreSQL 이관 + AI 임베딩까지
+# 📘 Spring Boot Day 21 — `SpringPostgreProject` 초기 세팅부터 Oracle↔PostgreSQL 이관 + AI 임베딩까지, `SpringRecipeAIProject` Jenkins-Docker 배포 파이프라인
 
 ## 0. 핵심 빠른 참조 — 이전 대비 바뀐 점
 
@@ -9,6 +9,8 @@
 | 화면 렌더링 | — | Thymeleaf `th:each` + 인라인 표현식(`[[...]]`)으로 목록 출력 |
 | DB 연동 범위 | PostgreSQL 단일 연결, `MemberMapper` 조회만 존재 | **Oracle + PostgreSQL 동시 연결**(다중 DataSource) + 패키지별 매퍼 분리 |
 | 데이터 처리 | 없음(단순 목록 조회) | Oracle 레시피 데이터를 조회해 PostgreSQL로 이관하고, **Spring AI Embedding**으로 벡터화해 `pgvector`에 저장 |
+| Jenkins 파이프라인(`SpringRecipeAIProject`) | Git 연결 확인만 하는 최소 파이프라인 | 빌드 → Docker 이미지 빌드/푸시 → 컨테이너 재배포까지 포함한 전체 배포 파이프라인 |
+| 레시피 추천 설계 | 없음 | 재료 입력 → 임베딩 검색 → pgvector 유사도 검색 → 재료 충족률 계산까지 전체 흐름 설계 |
 
 ---
 
@@ -374,7 +376,134 @@ public class RecipeVectorService {
 
 ---
 
-## 8. 비교표 — Git 작업 흐름 (이전 방식 vs 오늘 방식)
+## 8. `SpringRecipeAIProject` — Jenkins 파이프라인으로 빌드~Docker 배포 자동화
+
+### Jenkinsfile 전체 단계
+```groovy
+pipeline {
+    agent any
+    environment {
+        APP_DIR = "~/app"
+        JAR_NAME = "SpringRecipeAIProject-0.0.1-SNAPSHOT.jar"
+    }
+    stages {
+        stage('Check Out') {
+            steps { checkout scm }
+        }
+
+        stage('Create .env') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'post-url', variable: 'POST_URL'),
+                    string(credentialsId: 'gen-key', variable: 'GEN_KEY')
+                ]) {
+                    sh '''
+                        echo "SPRING_PROFILES_ACTIVE=prod" > .env
+                        echo "POST_URL=${POST_URL}" >> .env
+                        echo "GEN_KEY=${GEN_KEY}" >> .env
+                        chmod 600 .env
+                    '''
+                }
+            }
+        }
+
+        stage('Gradlew Build') {
+            steps { sh './gradlew clean build -x test' }
+        }
+
+        stage('Docker Build') {
+            steps { sh 'docker build -t <도커계정>/ai-app:latest .' }
+        }
+
+        stage('DockerHub Login') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub_info',
+                    usernameVariable: 'DH_USER',
+                    passwordVariable: 'DH_PASS'
+                )]) {
+                    sh 'echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin'
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps { sh 'docker push <도커계정>/ai-app:latest' }
+        }
+
+        stage('Container Stop')   { steps { sh 'docker stop ai-app || true' } }
+        stage('Container Remove') { steps { sh 'docker rm ai-app || true' } }
+        stage('DockerHub Pull')   { steps { sh 'docker pull <도커계정>/ai-app:latest' } }
+
+        stage('Docker Run') {
+            steps {
+                sh 'docker run -d --name ai-app -p 9090:9090 --env-file .env <도커계정>/ai-app:latest'
+            }
+        }
+    }
+}
+```
+- 기존 Jenkinsfile(Git 연결 확인만 하는 최소 파이프라인)에서 한 단계 나아가, 빌드부터 Docker 배포까지 전체 흐름을 파이프라인 하나에 담음
+- `environment` 블록은 파이프라인 전체에서 공통으로 쓰는 변수(앱 경로, jar 이름)를 선언하는 용도
+
+### `withCredentials` 두 가지 바인딩 타입
+- `string(credentialsId:, variable:)` — 토큰/URL처럼 값 하나를 변수 하나로 바인딩(`POST_URL`, `GEN_KEY`)
+- `usernamePassword(credentialsId:, usernameVariable:, passwordVariable:)` — 아이디/비밀번호 쌍을 변수 두 개로 한 번에 바인딩(DockerHub 로그인)
+- 두 경우 모두 Jenkins Credentials Store에 미리 등록해둔 값을 블록 안에서만 환경변수로 꺼내 쓰고, 블록 밖으로는 노출되지 않음
+
+### `.env` 파일을 파이프라인에서 생성해 컨테이너에 주입
+- `echo ... > .env` / `echo ... >> .env`로 파이프라인이 빌드 시점에 직접 `.env` 파일을 생성
+- `chmod 600 .env`로 소유자만 읽고 쓸 수 있게 권한을 제한 — 소스코드·이미지 안에는 민감정보를 전혀 남기지 않음
+- `docker run --env-file .env ...`로 컨테이너 실행 시점에 환경변수를 주입하는 방식 — Spring 쪽은 `application.yml`에서 `${POST_URL}`처럼 환경변수를 참조해 이 값을 읽음
+
+### Docker 로그인 — 비밀번호를 커맨드라인 인자로 남기지 않는 방식
+```bash
+echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
+```
+- `docker login -u ... -p ...`처럼 비밀번호를 인자로 바로 넘기면 프로세스 목록·로그에 노출될 수 있어, 표준입력(stdin)으로 전달받는 `--password-stdin` 방식을 사용
+
+### 컨테이너 재배포 패턴 — stop → rm → pull → run
+- 기존 컨테이너를 내리고(`stop`) 지운 뒤(`rm`) 최신 이미지를 받아(`pull`) 새로 띄우는(`run`) 4단계 고정 흐름
+- `stop`/`rm` 뒤에 `|| true`를 붙여, 컨테이너가 아직 없는 최초 배포 시에도 해당 단계가 실패로 파이프라인을 멈추지 않게 함
+
+### `application.yml` — DB URL 하드코딩 → 환경변수 참조로 전환
+```yaml
+spring:
+  datasource:
+    url: ${POST_URL}
+    username: postgres
+    password: <DB계정>
+    driver-class-name: org.postgresql.Driver
+```
+- 기존에는 `url: jdbc:postgresql://localhost:5432/recipe`처럼 접속 주소를 코드에 직접 박아뒀는데, `.env`로 주입되는 `${POST_URL}` 환경변수를 참조하도록 변경
+- 운영 서버 주소가 바뀌어도 코드 수정 없이 Jenkins Credentials 값만 바꾸면 되는 구조
+
+---
+
+## 9. 재료 기반 레시피 추천 — 전체 흐름 설계
+
+```text
+<브라우저>(HTML/바닐라 JS)
+  | 재료 선택 → POST 전송
+RecipeController (@RestController)
+  | ingredients 전달
+RecipeService
+  1) 재료 존재 여부 확인
+  2) 검색 문장 생성
+  3) EmbeddingModel로 검색 문장을 벡터(float[])로 변환
+  4) PostgreSQL + pgvector로 유사 레시피 검색
+  5) 검색된 레시피에서 content 추출
+  6) 냉장고 보유 재료 ↔ 레시피 재료 비교
+  7) 재료 상태 판정(부족 / 전체 만족) + 충족률 계산
+  → 충족률 기준 상위 5개 추천 리스트 반환
+```
+- 앞서 구현한 "Oracle→PostgreSQL 이관 + 임베딩 저장" 파이프라인(1~7절)에 이어, 저장된 벡터를 실제로 "검색"에 활용하는 쪽 설계를 정리한 단계
+- 검색 쿼리도 레시피 저장 때와 동일하게 "문장 생성 → `EmbeddingModel.embed()`로 벡터화" 과정을 거쳐야 pgvector 유사도 비교가 가능
+- 응답을 화면 렌더링이 아니라 데이터로 내려줘야 해서 Controller를 `@RestController`로 전환할 필요가 있음(기존 `@Controller` + `@ResponseBody` 방식에서 한 단계 더 나아간 형태)
+
+---
+
+## 10. 비교표 — Git 작업 흐름 (이전 방식 vs 오늘 방식)
 
 | 구분 | 이전 | 오늘 |
 |------|------|------|
@@ -384,10 +513,12 @@ public class RecipeVectorService {
 | 목적 | 빠른 반영 | 기능 단위 격리 + 리뷰 경유 후 통합 |
 | DB 구성 | PostgreSQL 단일 DataSource | Oracle + PostgreSQL **다중 DataSource**(`@Qualifier`+이중 SqlSessionFactory) |
 | 데이터 흐름 | 없음 | Oracle 조회 → PostgreSQL 이관 → Spring AI Embedding으로 벡터화 → `pgvector` 저장 |
+| Jenkins 파이프라인 범위 | Git 연결 확인만 하는 최소 파이프라인 | 빌드 → Docker 이미지 빌드/푸시 → 컨테이너 재배포까지 전체 배포 파이프라인 |
+| 민감정보 전달 방식 | 파이프라인에서 다루지 않음 | Jenkins Credentials → `.env` 파일 생성(`chmod 600`) → `docker run --env-file`로 컨테이너에 주입 |
 
 ---
 
-## 9. 다시 만들 때 체크리스트
+## 11. 다시 만들 때 체크리스트
 
 ```text
 [PostgreSQL + MyBatis 신규 프로젝트]
@@ -417,4 +548,15 @@ public class RecipeVectorService {
 ⑯ 여러 컬럼을 합친 문장(createContent)을 만들어 EmbeddingModel.embed()에 전달 → float[] 반환
 ⑰ float[]를 "[0.1,0.2,...]" 문자열로 변환해 INSERT 시 #{embedding}::vector로 캐스팅
 ⑱ 원본 테이블 VO와 벡터 테이블 VO(id/content/embedding)를 분리 설계
+
+[Jenkins CI/CD — 빌드~Docker 배포]
+⑲ withCredentials(string / usernamePassword)로 Jenkins Credentials Store 값을 파이프라인 환경변수로 바인딩
+⑳ .env 파일은 파이프라인에서 생성 후 chmod 600으로 권한 제한, 소스코드·이미지에는 민감정보 넣지 않음
+㉑ docker login은 echo "$비밀번호" | docker login --password-stdin 방식으로 커맨드라인 인자 노출 방지
+㉒ 컨테이너 재배포는 stop → rm → pull → run 순서(stop/rm은 || true로 최초 배포 시 실패 무시)
+㉓ application.yml은 하드코딩 값 대신 ${환경변수}로 참조해 .env 주입값을 읽도록 구성
+
+[재료 기반 레시피 추천 흐름 설계]
+㉔ 검색도 저장과 동일하게 "문장 생성 → EmbeddingModel.embed()로 벡터화" 과정을 거쳐야 pgvector 유사도 비교 가능
+㉕ 재료 선택 → 임베딩 검색 → pgvector 유사도 검색 → 냉장고 재료와 비교해 충족률 계산 → 상위 N개 추천 순서로 설계
 ```
